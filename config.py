@@ -9,6 +9,7 @@ SITE_TITLE = "GTA6 NEWS"
 SITE_TAGLINE = "The funniest GTA 6 clips in one feed. Unofficial fan project."
 SITE_URL = "https://darklion84.github.io/gta6-feed/"   # со слэшем в конце; сменить после подключения домена
 TELEGRAM_URL = "https://t.me/gta6hotreels"
+TELEGRAM_CHANNEL = "@gta6hotreels"   # куда постить; секрет TELEGRAM_CHANNEL, если задан, важнее
 
 # --- Что искать на YouTube --------------------------------------------------
 # Запросы перебираются по кругу, по SEARCHES_PER_RUN штук за запуск.

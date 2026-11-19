@@ -11,7 +11,7 @@ def token():
 
 
 def channel():
-    return os.environ.get("TELEGRAM_CHANNEL", "").strip()
+    return os.environ.get("TELEGRAM_CHANNEL", "").strip() or cfg.TELEGRAM_CHANNEL
 
 
 def admin_ids():

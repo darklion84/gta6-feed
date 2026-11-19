@@ -26,12 +26,11 @@
    |---|---|
    | `YOUTUBE_API_KEY` | ключ из шага 2 |
    | `TELEGRAM_BOT_TOKEN` | токен бота |
-   | `TELEGRAM_CHANNEL` | `@имя_канала` |
    | `TELEGRAM_ADMIN_IDS` | ваш числовой ID (несколько через запятую) |
 
 5. **Сайт.** Settings → Pages → Source: **GitHub Actions**.
-6. **Адреса.** В `config.py` впишите `SITE_URL` (адрес Pages со слэшем в конце)
-   и `TELEGRAM_URL`.
+6. **Адреса.** В `config.py` впишите `SITE_URL` (адрес Pages со слэшем в конце),
+   `TELEGRAM_URL` и `TELEGRAM_CHANNEL` (`@имя_канала`).
 7. **Первый запуск.** Actions → feed → Run workflow. Дальше оно работает само.
 
 Любой секрет можно не задавать: без ключа YouTube пропускается поиск, без
