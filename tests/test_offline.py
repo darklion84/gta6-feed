@@ -33,6 +33,8 @@ class Fake:
         self.replies = []
         self.candidates = []
         self.edits = []
+        self.deleted = []
+        self.delete_fails = False
         self.answers = []
         self.updates = []
 
@@ -60,6 +62,11 @@ class Fake:
             return {"ok": True}
         if url.endswith("/forwardMessage"):
             self.posts.append(payload)
+            return {"ok": True}
+        if url.endswith("/deleteMessage"):
+            if self.delete_fails:
+                raise net.ApiError("telegram", 400, "message can't be deleted")
+            self.deleted.append((payload["chat_id"], payload["message_id"]))
             return {"ok": True}
         if url.endswith("/editMessageText"):
             self.edits.append(payload)
@@ -328,8 +335,9 @@ class Moderation(Base):
         self.assertEqual(items["yt:freshfast01"]["status"], "rejected")
         self.assertEqual(len(self.fake.posts), 1)
         self.assertEqual(len(self.fake.answers), 2)
-        self.assertEqual(len(self.fake.edits), 2)              # "пропущен" и "опубликован"
-        self.assertTrue(all(e["reply_markup"] == {"inline_keyboard": []} for e in self.fake.edits))
+        # оба сообщения с кандидатами удалены из лички: это и есть подтверждение нажатия
+        self.assertCountEqual(self.fake.deleted, [(42, 1001), (42, 1002)])
+        self.assertEqual(self.fake.edits, [])
         self.assertEqual([i["id"] for i in self.feed()["items"]], ["popular0001"])
 
         self.tap(30, "ok", "yt:freshfast01")                   # повторное нажатие по старой кнопке
@@ -351,7 +359,25 @@ class Moderation(Base):
         app.run(T + timedelta(hours=cfg.MOD_TIMEOUT_HOURS + 1))
         expired = [i for i in self.db()["items"].values() if i["status"] == "expired"]
         self.assertEqual(len(expired), cfg.MOD_MAX_PENDING)
-        self.assertEqual(len(f.edits), cfg.MOD_MAX_PENDING)        # кнопки с просроченных сняты
+        self.assertEqual(len(f.deleted), cfg.MOD_MAX_PENDING)      # просроченные убраны из лички
+
+    def test_untouched_candidate_stays_until_its_tap_arrives(self):
+        Pipeline.seed(self)
+        app.run(T)
+        self.tap(20, "no", "yt:freshfast01")
+        app.run(T + timedelta(minutes=10))
+        self.assertEqual(len(self.fake.deleted), 1)                # удалён только тот, по которому нажали
+        self.assertEqual(self.db()["items"]["yt:popular0001"]["status"], "pending")
+
+    def test_falls_back_to_removing_buttons_when_delete_fails(self):
+        Pipeline.seed(self)
+        app.run(T)
+        self.fake.delete_fails = True
+        self.tap(20, "no", "yt:freshfast01")
+        app.run(T + timedelta(minutes=10))
+        self.assertEqual(len(self.fake.edits), 1)
+        self.assertEqual(self.fake.edits[0]["reply_markup"], {"inline_keyboard": []})
+        self.assertIn("Пропущен", self.fake.edits[0]["text"])
 
     def test_manual_link_skips_moderation(self):
         self.fake.updates = [{"update_id": 10, "message": {

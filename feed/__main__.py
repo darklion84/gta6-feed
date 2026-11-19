@@ -117,7 +117,7 @@ def add_manual(db, t, parsed, title, extra=None):
     except (net.ApiError, ValueError):
         pass  # без метаданных тоже можно публиковать
     if old and old.get("mod_msgs"):
-        telegram.mark(old, "➡️ Добавлен вручную")
+        telegram.clear(old, "➡️ Добавлен вручную")
     item.update(extra or {})
     db["items"][key] = item
     if parsed["platform"] == "tgx":
@@ -159,14 +159,19 @@ def handle_tap(db, t, callback_id, data):
     item = db["items"].get(key)
     if not item or item.get("status") != "pending":
         telegram.answer(callback_id, "Уже обработано")
+        if item:
+            telegram.clear(item, "Уже обработано")
         return
+    # Сообщение с кандидатом удаляется именно здесь: его исчезновение и есть
+    # подтверждение админу, что нажатие дошло и учтено.
     if action == "ok":
         item["status"], item["approved_at"] = "approved", store.iso(t)
         telegram.answer(callback_id, "Принято, выйдет в канал")
+        telegram.clear(item, "✅ Одобрен")
     else:
         item["status"] = "rejected"
         telegram.answer(callback_id, "Пропущен")
-        telegram.mark(item, "❌ Пропущен")
+        telegram.clear(item, "❌ Пропущен")
 
 
 def collect_inbox(db, t):
@@ -271,7 +276,7 @@ def refresh_stats(db, t, skip):
         if i["status"] == "pending":
             if store.hours_since(i["mod_sent_at"], t) > cfg.MOD_TIMEOUT_HOURS:
                 i["status"] = "expired"
-                telegram.mark(i, "⌛ Время вышло")
+                telegram.clear(i, "⌛ Время вышло")
         elif i["status"] == "new" and i.get("source") != "manual":
             if store.hours_since(i["published_at"], t) > cfg.SEARCH_WINDOW_HOURS:
                 i["status"] = "expired"
@@ -293,13 +298,15 @@ def post(item, t):
             item["post_fails"] = item.get("post_fails", 0) + 1
             if item.get("fwd") or item["post_fails"] >= 3:
                 item["status"] = "failed"
-                telegram.mark(item, "⚠️ Не удалось опубликовать")
                 if item.get("fwd"):
                     telegram.reply(item["fwd"][0], "Не удалось переслать пост в канал: "
                                                    "похоже, источник запретил пересылку.")
+                else:   # сообщение с кандидатом уже удалено, так что сообщаем отдельно
+                    for chat_id in sorted(telegram.admin_ids()):
+                        telegram.reply(chat_id, "⚠️ Не удалось опубликовать в канале: "
+                                                f"{item.get('title') or item['url']}")
             return "skip"
     item["status"], item["posted_at"] = "published", store.iso(t)
-    telegram.mark(item, "✅ Опубликован в канале")
     log.info("опубликован: %s %s", item["key"], item.get("title", "")[:60])
     return "ok"
 

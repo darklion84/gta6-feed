@@ -125,6 +125,20 @@ def mark(item, note):
             pass
 
 
+def clear(item, note):
+    """Убрать сообщения-кандидаты из лички админа: решение принято.
+
+    Если удалить не вышло (например, сообщению больше 48 часов), хотя бы
+    снимаем кнопки и дописываем итог.
+    """
+    for chat_id, message_id in item.get("mod_msgs", []):
+        try:
+            _call("deleteMessage", {"chat_id": chat_id, "message_id": message_id})
+        except net.ApiError:
+            mark({**item, "mod_msgs": [[chat_id, message_id]]}, note)
+    item["mod_msgs"] = []
+
+
 def answer(callback_id, text):
     """Всплывающий ответ на нажатие. На старые нажатия Telegram отвечает ошибкой, это не страшно."""
     try:

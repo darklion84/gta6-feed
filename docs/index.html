@@ -2,130 +2,137 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>GTA6 NEWS</title>
 <meta name="description" content="The funniest GTA 6 clips from YouTube, TikTok and Instagram in one feed. Unofficial fan project.">
+<meta name="theme-color" content="#0c0a12">
 <style>
   :root {
     --bg: #0c0a12; --card: #17131f; --line: #2a2436;
     --text: #f3eef8; --dim: #9d93ad;
     --a1: #ff4f9a; --a2: #ff9a3d;
+    --head: 52px;   /* шапка */
+    --info: 72px;   /* подпись под плеером */
+    /* плеер 9:16, вписанный в экран между шапкой и подписью */
+    --pw: min(100vw, calc((100vh - var(--head) - var(--info) - 16px) * 9 / 16));
+  }
+  @supports (height: 100dvh) {
+    :root { --pw: min(100vw, calc((100dvh - var(--head) - var(--info) - 16px) * 9 / 16)); }
   }
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  }
+  html, body { height: 100%; margin: 0; overflow: hidden; background: var(--bg); color: var(--text); }
+  body { font: 15px/1.35 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
   header {
-    position: sticky; top: 0; z-index: 5;
-    background: rgba(12, 10, 18, .92); backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--line);
+    position: fixed; top: 0; left: 0; right: 0; height: var(--head); z-index: 5;
+    display: flex; align-items: center; gap: 10px; padding: 0 12px;
+    background: rgba(12, 10, 18, .94); border-bottom: 1px solid var(--line);
   }
-  .bar { max-width: 1200px; margin: 0 auto; padding: 12px 16px 10px; }
-  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   h1 {
-    margin: 0; font-size: 22px; font-weight: 800; letter-spacing: .02em;
+    margin: 0; flex: none; font-size: 18px; font-weight: 800; letter-spacing: .02em;
     background: linear-gradient(90deg, var(--a1), var(--a2));
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
-  .tg {
-    display: none; padding: 7px 14px; border-radius: 999px; white-space: nowrap;
-    background: linear-gradient(90deg, var(--a1), var(--a2));
-    color: #1a0f14; font-weight: 700; font-size: 14px; text-decoration: none;
-  }
-  .tagline { margin: 2px 0 10px; color: var(--dim); font-size: 13px; }
-  .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+  .chips { flex: 1; min-width: 0; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
   .chips::-webkit-scrollbar { display: none; }
   .chip {
-    padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line);
-    background: transparent; color: var(--dim); font: inherit; font-size: 14px;
-    cursor: pointer; white-space: nowrap;
+    flex: none; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+    background: transparent; color: var(--dim); font: inherit; font-size: 13px; cursor: pointer;
   }
   .chip[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
-  main { max-width: 1200px; margin: 0 auto; padding: 16px; }
-  .grid { display: grid; gap: 18px; align-items: start; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
-  .card {
-    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
-    overflow: hidden; scroll-margin-top: 130px;
+  .tg {
+    display: none; flex: none; padding: 6px 12px; border-radius: 999px;
+    background: linear-gradient(90deg, var(--a1), var(--a2));
+    color: #1a0f14; font-weight: 700; font-size: 13px; text-decoration: none;
   }
-  .card.target { border-color: var(--a1); box-shadow: 0 0 0 2px rgba(255, 79, 154, .35); }
+
+  /* Лента: один ролик на экран, прокрутка "прилипает" к роликам */
+  #feed {
+    position: fixed; top: var(--head); left: 0; right: 0; bottom: 0;
+    overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior: contain;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  #feed::-webkit-scrollbar { display: none; }
+  .slide {
+    height: 100%; scroll-snap-align: start; scroll-snap-stop: always;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
   .player {
-    position: relative; aspect-ratio: 9 / 16; background: #000;
+    position: relative; width: var(--pw); aspect-ratio: 9 / 16; flex: none;
+    background: #000; border-radius: 14px; overflow: hidden;
     display: flex; align-items: center; justify-content: center;
   }
-  .player.ig { aspect-ratio: 9 / 19; background: #fff; }
-  .player.tg { aspect-ratio: 9 / 14; background: #17212b; }
+  .player.ig { background: #fff; }
+  .player.tg { background: #17212b; }
   .player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   .ph { color: #5d5470; font-size: 14px; text-align: center; padding: 0 20px; }
-  .info { padding: 12px 14px 14px; }
+
+  .info {
+    width: var(--pw); height: var(--info); flex: none; padding: 8px 12px 0;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .text { flex: 1; min-width: 0; }
   .title {
-    margin: 0 0 6px; font-size: 15px; font-weight: 600;
+    margin: 0 0 3px; font-size: 14px; font-weight: 600;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     overflow-wrap: anywhere;
   }
-  .meta { color: var(--dim); font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+  .meta { color: var(--dim); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .meta a { color: var(--a2); text-decoration: none; }
-  .more {
-    display: none; margin: 22px auto 0; padding: 12px 28px; border-radius: 999px;
-    border: 1px solid var(--line); background: var(--card); color: var(--text);
-    font: inherit; font-weight: 600; cursor: pointer;
+  .meta span + span::before, .meta span + a::before { content: " · "; color: var(--dim); }
+  .nav { flex: none; display: flex; gap: 6px; }
+  .nav button {
+    width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--card); color: var(--text); font-size: 16px; line-height: 1; cursor: pointer;
   }
-  .empty { color: var(--dim); text-align: center; padding: 60px 16px; }
-  footer {
-    max-width: 1200px; margin: 0 auto; padding: 26px 16px 40px;
-    color: #6f6680; font-size: 12px; text-align: center;
-  }
-  @media (max-width: 640px) {
-    main { padding: 12px; }
-    .grid { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; }
-  }
+  .nav button:disabled { opacity: .3; cursor: default; }
+
+  .about { padding: 24px; text-align: center; color: var(--dim); font-size: 13px; }
+  .about h2 { color: var(--text); font-size: 20px; margin: 0 0 8px; }
+  .about p { max-width: 420px; margin: 0 auto 14px; }
+  .about .tg { display: inline-block; font-size: 15px; padding: 10px 20px; }
+  .about small { display: block; max-width: 420px; margin: 18px auto 0; color: #6f6680; font-size: 12px; }
 </style>
 </head>
 <body>
 <header>
-  <div class="bar">
-    <div class="top">
-      <h1 id="site-title">GTA6 NEWS</h1>
-      <a class="tg" id="tg" target="_blank" rel="noopener">Telegram</a>
-    </div>
-    <p class="tagline" id="tagline">The funniest GTA 6 clips in one feed. Unofficial fan project.</p>
-    <div class="chips" id="chips" role="group" aria-label="Filter by platform">
-      <button class="chip" data-p="all" aria-pressed="true">All</button>
-      <button class="chip" data-p="yt" aria-pressed="false">YouTube</button>
-      <button class="chip" data-p="tt" aria-pressed="false">TikTok</button>
-      <button class="chip" data-p="ig" aria-pressed="false">Instagram</button>
-      <button class="chip" data-p="tg" aria-pressed="false">Telegram</button>
-    </div>
+  <h1 id="site-title">GTA6 NEWS</h1>
+  <div class="chips" id="chips" role="group" aria-label="Filter by platform">
+    <button class="chip" data-p="all" aria-pressed="true">All</button>
+    <button class="chip" data-p="yt" aria-pressed="false">YouTube</button>
+    <button class="chip" data-p="tt" aria-pressed="false">TikTok</button>
+    <button class="chip" data-p="ig" aria-pressed="false">Instagram</button>
+    <button class="chip" data-p="tg" aria-pressed="false">Telegram</button>
   </div>
+  <a class="tg" id="tg" target="_blank" rel="noopener">Telegram</a>
 </header>
 
-<main>
-  <div class="grid" id="grid"></div>
-  <p class="empty" id="empty" hidden>No clips yet. Check back soon.</p>
-  <button class="more" id="more">Show more</button>
-  <noscript><p class="empty">Please enable JavaScript to watch the feed.</p></noscript>
+<main id="feed" tabindex="-1" aria-label="Clips feed">
+  <noscript><p class="about">Please enable JavaScript to watch the feed.</p></noscript>
 </main>
-
-<footer>
-  Unofficial fan project. Not affiliated with Rockstar Games or Take-Two Interactive.<br>
-  All clips belong to their creators and are played through the platforms' official embedded players.
-</footer>
 
 <script>
 (function () {
   'use strict';
-  var PAGE = 12;
+  // Ролик на экране запускается сам. Браузеры разрешают автозапуск только без
+  // звука, поэтому YouTube стартует с выключенным звуком (включается касанием).
+  // false = ничего не запускать, пока зритель сам не нажмёт play.
+  var AUTOPLAY = true;
+
   var NAMES = { yt: 'YouTube', tt: 'TikTok', ig: 'Instagram', tg: 'Telegram' };
-  var all = [], filter = 'all', shown = PAGE;
-  var grid = document.getElementById('grid');
-  var more = document.getElementById('more');
-  var empty = document.getElementById('empty');
+  var all = [], filter = 'all', meta = {}, active = null;
+  var feed = document.getElementById('feed');
 
   function embedUrl(it) {
     var id = encodeURIComponent(it.id);
-    if (it.platform === 'yt') return 'https://www.youtube.com/embed/' + id + '?playsinline=1&rel=0';
-    if (it.platform === 'tt') return 'https://www.tiktok.com/player/v1/' + id + '?rel=0&description=0&music_info=0';
+    if (it.platform === 'yt') {
+      return 'https://www.youtube.com/embed/' + id + '?playsinline=1&rel=0&loop=1&playlist=' + id +
+             (AUTOPLAY ? '&autoplay=1&mute=1' : '');
+    }
+    if (it.platform === 'tt') {
+      return 'https://www.tiktok.com/player/v1/' + id + '?rel=0&description=0&music_info=0&loop=1' +
+             (AUTOPLAY ? '&autoplay=1' : '');
+    }
     if (it.platform === 'ig') return 'https://www.instagram.com/reel/' + id + '/embed/';
     // пост публичного Telegram-канала: id вида "channel/123"
     if (it.platform === 'tg' && /^[A-Za-z]\w{3,31}\/\d+$/.test(it.id)) return 'https://t.me/' + it.id + '?embed=1&dark=1';
@@ -146,134 +153,157 @@
     return Math.round(m / 1440) + ' d ago';
   }
 
-  function span(text) {
-    var s = document.createElement('span');
-    s.textContent = text;
-    return s;
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
   }
 
-  // Плеер создаётся, когда карточка подходит к экрану, и убирается, когда
-  // уезжает далеко: страница не грузит десятки плееров разом, а ролик,
-  // который пролистали, перестаёт играть.
-  var mounter = new IntersectionObserver(function (entries) {
-    entries.forEach(function (e) { if (e.isIntersecting) mount(e.target); });
-  }, { rootMargin: '500px 0px' });
-  var unmounter = new IntersectionObserver(function (entries) {
-    entries.forEach(function (e) { if (!e.isIntersecting) unmount(e.target); });
-  }, { rootMargin: '2500px 0px' });
-
-  function mount(box) {
-    if (box.querySelector('iframe') || !box.dataset.src) return;
+  // Плеер есть только у ролика, который сейчас на экране: предыдущий сразу
+  // перестаёт играть, а страница не держит десятки плееров одновременно.
+  function mount(slide) {
+    var box = slide.querySelector('.player');
+    if (!box || box.querySelector('iframe')) return;
     var f = document.createElement('iframe');
     f.src = box.dataset.src;
     f.title = box.dataset.title || 'Video';
-    f.loading = 'lazy';
     f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen; web-share';
     f.allowFullscreen = true;
     f.referrerPolicy = 'strict-origin-when-cross-origin';
     box.appendChild(f);
   }
-  function unmount(box) {
-    var f = box.querySelector('iframe');
+  function unmount(slide) {
+    var f = slide.querySelector('iframe');
     if (f) f.remove();
   }
 
-  function card(it) {
-    var el = document.createElement('article');
-    el.className = 'card';
-    el.id = it.platform + '-' + it.id;
+  var watcher = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting || e.target === active) return;
+      if (active) unmount(active);
+      active = e.target;
+      mount(active);
+      if (active.id) history.replaceState(null, '', '#' + active.id);
+    });
+  }, { root: feed, threshold: 0.6 });
 
-    var box = document.createElement('div');
-    box.className = 'player ' + it.platform;
-    box.dataset.src = embedUrl(it) || '';
-    box.dataset.title = it.title || '';
-    var ph = document.createElement('div');
-    ph.className = 'ph';
-    ph.textContent = (NAMES[it.platform] || '') + ' · loading player…';
-    box.appendChild(ph);
-    el.appendChild(box);
-
-    var info = document.createElement('div');
-    info.className = 'info';
-    var h = document.createElement('h2');
-    h.className = 'title';
-    h.textContent = it.title || 'GTA 6 clip';
-    info.appendChild(h);
-
-    var meta = document.createElement('div');
-    meta.className = 'meta';
-    if (it.author) meta.appendChild(span(it.author));
-    if (it.views) meta.appendChild(span(fmtViews(it.views) + ' views'));
-    if (it.posted_at) meta.appendChild(span(ago(it.posted_at)));
-    if (typeof it.url === 'string' && it.url.indexOf('https://') === 0) {
-      var a = document.createElement('a');
-      a.href = it.url; a.target = '_blank'; a.rel = 'noopener';
-      a.textContent = 'Open on ' + (NAMES[it.platform] || 'source');
-      meta.appendChild(a);
-    }
-    info.appendChild(meta);
-    el.appendChild(info);
-
-    mounter.observe(box);
-    unmounter.observe(box);
-    return el;
+  function go(from, step) {
+    var to = step > 0 ? from.nextElementSibling : from.previousElementSibling;
+    if (to && to.classList.contains('slide')) to.scrollIntoView({ behavior: 'smooth' });
   }
 
-  function visible() {
-    return all.filter(function (it) { return filter === 'all' || it.platform === filter; });
+  function navButtons(slide, first) {
+    var nav = el('div', 'nav');
+    var up = el('button', null, '▲'), down = el('button', null, '▼');
+    up.type = down.type = 'button';
+    up.setAttribute('aria-label', 'Previous clip');
+    down.setAttribute('aria-label', 'Next clip');
+    up.disabled = first;
+    up.addEventListener('click', function () { go(slide, -1); });
+    down.addEventListener('click', function () { go(slide, 1); });
+    nav.appendChild(up); nav.appendChild(down);
+    return nav;
+  }
+
+  function clipSlide(it, first) {
+    var slide = el('section', 'slide');
+    slide.id = it.platform + '-' + it.id;
+
+    var box = el('div', 'player ' + it.platform);
+    box.dataset.src = embedUrl(it);
+    box.dataset.title = it.title || '';
+    box.appendChild(el('div', 'ph', (NAMES[it.platform] || '') + ' · loading player…'));
+    slide.appendChild(box);
+
+    var info = el('div', 'info');
+    var text = el('div', 'text');
+    text.appendChild(el('h2', 'title', it.title || 'GTA 6 clip'));
+    var m = el('div', 'meta');
+    if (it.author) m.appendChild(el('span', null, it.author));
+    if (it.views) m.appendChild(el('span', null, fmtViews(it.views) + ' views'));
+    if (it.posted_at) m.appendChild(el('span', null, ago(it.posted_at)));
+    if (typeof it.url === 'string' && it.url.indexOf('https://') === 0) {
+      var a = el('a', null, NAMES[it.platform] || 'Source');
+      a.href = it.url; a.target = '_blank'; a.rel = 'noopener';
+      m.appendChild(a);
+    }
+    text.appendChild(m);
+    info.appendChild(text);
+    info.appendChild(navButtons(slide, first));
+    slide.appendChild(info);
+    return slide;
+  }
+
+  function aboutSlide(empty) {
+    var slide = el('section', 'slide about');
+    slide.appendChild(el('h2', null, empty ? 'No clips yet' : "You're all caught up"));
+    slide.appendChild(el('p', null, empty ? 'Check back soon.' : (meta.tagline || '')));
+    if (meta.telegram) {
+      var a = el('a', 'tg', 'New clips on Telegram');
+      a.href = meta.telegram; a.target = '_blank'; a.rel = 'noopener';
+      slide.appendChild(a);
+    }
+    slide.appendChild(el('small', null,
+      'Unofficial fan project. Not affiliated with Rockstar Games or Take-Two Interactive. ' +
+      "All clips belong to their creators and are played through the platforms' official embedded players."));
+    return slide;
   }
 
   function render() {
-    var list = visible();
-    mounter.disconnect(); unmounter.disconnect();
-    grid.textContent = '';
-    list.slice(0, shown).forEach(function (it) { grid.appendChild(card(it)); });
-    empty.hidden = list.length > 0;
-    more.style.display = list.length > shown ? 'block' : 'none';
+    watcher.disconnect();
+    active = null;
+    feed.textContent = '';
+    var list = all.filter(function (it) { return filter === 'all' || it.platform === filter; });
+    list.forEach(function (it, i) { feed.appendChild(clipSlide(it, i === 0)); });
+    feed.appendChild(aboutSlide(list.length === 0));
+    feed.scrollTop = 0;
+    feed.querySelectorAll('.slide').forEach(function (s) { watcher.observe(s); });
   }
 
   function jumpToHash() {
     var id = decodeURIComponent(location.hash.slice(1));
-    if (!id) return;
-    var idx = -1;
-    visible().forEach(function (it, i) { if (it.platform + '-' + it.id === id) idx = i; });
-    if (idx < 0) return;
-    if (idx >= shown) { shown = Math.ceil((idx + 1) / PAGE) * PAGE; render(); }
-    var el = document.getElementById(id);
-    if (el) { el.classList.add('target'); el.scrollIntoView({ block: 'start' }); }
+    var target = id && document.getElementById(id);
+    if (target && target.classList.contains('slide')) target.scrollIntoView();
   }
 
   document.getElementById('chips').addEventListener('click', function (e) {
     var b = e.target.closest('.chip');
     if (!b) return;
-    filter = b.dataset.p; shown = PAGE;
+    filter = b.dataset.p;
     document.querySelectorAll('.chip').forEach(function (c) {
       c.setAttribute('aria-pressed', String(c === b));
     });
+    history.replaceState(null, '', location.pathname + location.search);
     render();
   });
-  more.addEventListener('click', function () { shown += PAGE; render(); });
-  window.addEventListener('hashchange', jumpToHash);
+
+  document.addEventListener('keydown', function (e) {
+    if (!active || e.target.closest('button, a, input')) return;
+    if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === 'j') { e.preventDefault(); go(active, 1); }
+    if (e.key === 'ArrowUp' || e.key === 'PageUp' || e.key === 'k') { e.preventDefault(); go(active, -1); }
+  });
 
   fetch('feed.json?_=' + Date.now())
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(function (data) {
       all = (data.items || []).filter(function (it) { return it && it.id && embedUrl(it); });
+      meta.tagline = data.tagline || '';
       if (data.title) {
         document.title = data.title;
         document.getElementById('site-title').textContent = data.title;
       }
-      if (data.tagline) document.getElementById('tagline').textContent = data.tagline;
       if (typeof data.telegram_url === 'string' && data.telegram_url.indexOf('https://t.me/') === 0) {
+        meta.telegram = data.telegram_url;
         var tg = document.getElementById('tg');
-        tg.href = data.telegram_url; tg.style.display = 'inline-block';
+        tg.href = data.telegram_url; tg.style.display = 'block';
       }
       render();
       jumpToHash();
     })
     .catch(function () {
-      empty.textContent = 'Could not load the feed. Please refresh the page.';
-      empty.hidden = false;
+      feed.textContent = '';
+      feed.appendChild(el('section', 'slide about', 'Could not load the feed. Please refresh the page.'));
     });
 })();
 </script>
