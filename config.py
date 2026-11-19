@@ -7,7 +7,7 @@
 # --- Сайт и канал -----------------------------------------------------------
 SITE_TITLE = "GTA6 NEWS"
 SITE_TAGLINE = "The funniest GTA 6 clips in one feed. Unofficial fan project."
-SITE_URL = "https://darklion84.github.io/gta6-feed/"   # со слэшем в конце; сменить после подключения домена
+SITE_URL = "https://gta6hot.com/"   # со слэшем в конце; тот же адрес прописан в мета-тегах docs/index.html
 TELEGRAM_URL = "https://t.me/gta6hotreels"
 TELEGRAM_CHANNEL = "@gta6hotreels"   # куда постить; секрет TELEGRAM_CHANNEL, если задан, важнее
 
