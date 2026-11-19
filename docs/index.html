@@ -176,6 +176,7 @@
     f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen; web-share';
     f.allowFullscreen = true;
     f.referrerPolicy = 'strict-origin-when-cross-origin';
+    f.dataset.mounted = String(Date.now());
     box.appendChild(f);
     if (box.classList.contains('yt')) subscribeYouTube(f);
   }
@@ -273,13 +274,29 @@
     } else if (info.muted === true && frame.dataset.unmuted && frame.dataset.sound !== 'blocked') {
       saveSound(false);                                        // зритель сам его выключил
     }
-    if (info.state === 1) applySound(frame);                   // ролик пошёл: включаем звук, если просили
+    if (info.state === 1) {
+      frame.dataset.played = '1';
+      applySound(frame);                                       // ролик пошёл: включаем звук, если просили
+    }
 
-    if (AUTONEXT && info.state === 0 && !frame.dataset.ended) {
+    // "Доиграл" засчитываем, только если ролик действительно шёл и не закончился
+    // подозрительно быстро: плеер с ошибкой не должен гнать ленту дальше по цепочке.
+    var alive = Date.now() - Number(frame.dataset.mounted || 0) > 3000;
+    if (AUTONEXT && info.state === 0 && frame.dataset.played && alive && !frame.dataset.ended) {
       frame.dataset.ended = '1';
       go(active, 1);
     }
   });
+
+  // Плеер ставится не мгновенно, а когда ролик продержался на экране почти
+  // полсекунды: при быстром пролистывании ленты плееры пропущенных роликов не
+  // грузятся вовсе. Лишние загрузки YouTube принимает за робота и начинает
+  // требовать вход в аккаунт.
+  var mountTimer = null;
+  function mountSoon(slide) {
+    clearTimeout(mountTimer);
+    mountTimer = setTimeout(function () { if (slide === active) mount(slide); }, 400);
+  }
 
   function unmount(slide) {
     var f = slide.querySelector('iframe');
@@ -291,7 +308,7 @@
       if (!e.isIntersecting || e.target === active) return;
       if (active) unmount(active);
       active = e.target;
-      mount(active);
+      mountSoon(active);
       if (active.id) history.replaceState(null, '', '#' + active.id);
       remember(active);
       // у конца ленты (последний ролик или экран "всё просмотрено") следим за новинками
