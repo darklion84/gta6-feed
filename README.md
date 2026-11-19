@@ -130,6 +130,27 @@ Telegram-каналов (`https://t.me/channel/123`).
   двенадцать, показывается приглашение в Telegram-канал. Тем, кто уже перешёл в
   канал, она больше не показывается.
 
+## Анонсы в Bluesky и Threads
+
+Каждый ролик, вышедший в ленте, и подборка дня могут сами уходить короткой
+записью со ссылкой на сайт в другие сети. Сеть включается, когда в
+Settings → Secrets and variables → Actions появляются её секреты:
+
+- **Bluesky.** Заведите аккаунт на [bsky.app](https://bsky.app), затем в
+  Settings → Privacy and security → App passwords создайте пароль приложения.
+  Секреты: `BLUESKY_HANDLE` (например `gta6hot.bsky.social`) и
+  `BLUESKY_APP_PASSWORD`.
+- **Threads.** Нужен аккаунт Threads и приложение в
+  [кабинете разработчика Meta](https://developers.facebook.com/apps/) со сценарием
+  Threads API и правами `threads_basic` и `threads_content_publish`. Себя
+  добавьте как Threads Tester (App roles → Roles) и примите приглашение в
+  настройках Threads (Account → Website permissions). Долгоживущий ключ
+  доступа положите в секрет `THREADS_TOKEN`. Ключ живёт 60 дней, сборщик раз в
+  неделю продлевает его сам.
+
+Если сеть перестанет принимать ключ, бот напишет об этом в личку. Темп и теги
+задаются в `config.py` (`SOCIAL_*`).
+
 ## Настройка
 
 Всё в `config.py`, с комментариями. Главное:
@@ -149,6 +170,8 @@ feed/youtube.py    YouTube Data API
 feed/telegram.py   посты в канал и приём ссылок
 feed/dedup.py      дубли: длительность ±1 с плюс похожее название или обложка
 feed/pages.py      страницы роликов, подборка дня, карта сайта
+feed/social.py     анонсы в Bluesky и Threads
+feed/channel_setup.py  разовая настройка названия и описания канала (workflow channel)
 docs/index.html    сайт, читает docs/feed.json
 data/db.json       база (создаётся сама, хранит 14 дней)
 ```

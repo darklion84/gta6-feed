@@ -6,6 +6,7 @@
 4. опубликовать одобренное; новых кандидатов отправить админу на модерацию
    (или сразу в канал, если MODERATION = False)
 5. раз в сутки отправить в канал подборку лучших роликов дня
+   и анонсировать новое в других сетях (Bluesky, Threads), если они подключены
 6. пересобрать сайт: docs/feed.json, страницы роликов, подборку, карту сайта
 
 Статусы записи: new -> pending -> approved -> published
@@ -18,7 +19,7 @@ import re
 from datetime import timedelta, timezone
 
 import config as cfg
-from . import dedup, links, net, pages, store, telegram, worker, youtube
+from . import dedup, links, net, pages, social, store, telegram, worker, youtube
 
 log = logging.getLogger("feed")
 RELEVANT = [re.compile(p, re.I) for p in cfg.MUST_MATCH]
@@ -602,6 +603,7 @@ def run(t=None):
     refresh_stats(db, t, added)
     posted = publish(db, t)
     daily_top(db, t)
+    social.crosspost(db, t)
     prune(db, t)
     total = build_feed(db, t)
     store.save(db)

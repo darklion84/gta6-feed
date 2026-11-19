@@ -15,6 +15,7 @@ class ApiError(Exception):
         super().__init__(f"{service}: HTTP {status} {str(body)[:200]}")
         self.service = service
         self.status = status
+        self.body = str(body)[:2000]      # для разбора причины; в логи целиком не попадает
 
 
 def _check(service, r):
@@ -34,6 +35,16 @@ def get_json(service, url, params=None, headers=None):
 def post_json(service, url, payload):
     try:
         r = requests.post(url, json=payload, timeout=TIMEOUT, headers=UA)
+    except requests.RequestException as e:
+        raise ApiError(service, 0, type(e).__name__) from None
+    return _check(service, r).json()
+
+
+def send(service, url, *, json=None, data=None, body=None, headers=None):
+    """POST с JSON, формой (data) или сырыми байтами (body). -> разобранный ответ."""
+    try:
+        r = requests.post(url, json=json, data=body if body is not None else data,
+                          timeout=TIMEOUT, headers={**UA, **(headers or {})})
     except requests.RequestException as e:
         raise ApiError(service, 0, type(e).__name__) from None
     return _check(service, r).json()

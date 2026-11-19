@@ -42,6 +42,9 @@ class Fake:
         self.worker_events = []
         self.worker_down = False
         self.acks = []
+        self.sent = []              # запросы в другие сети: (адрес, содержимое)
+        self.social_error = None    # (кусок адреса, ошибка): чем отвечать на такие запросы
+        self.thumbs = 0
 
     def get_json(self, service, url, params=None, headers=None):
         if url.endswith("/pull"):
@@ -58,6 +61,33 @@ class Fake:
             return {"items": [self.videos[i] for i in params["id"].split(",") if i in self.videos]}
         if "tiktok.com/oembed" in url:
             return {"title": "Полёт на байке #gta6", "author_name": "rider"}
+        if "graph.threads.com" in url:
+            self.sent.append((url, dict(params)))
+            if self.social_error and self.social_error[0] in url:
+                raise self.social_error[1]
+            if url.endswith("/me"):
+                return {"id": "777"}
+            if url.endswith("/refresh_access_token"):
+                return {"access_token": params["access_token"] + "+", "token_type": "bearer", "expires_in": 5183944}
+        raise AssertionError(url)
+
+    def send(self, service, url, *, json=None, data=None, body=None, headers=None):
+        self.sent.append((url, json if json is not None else data if data is not None else body))
+        if self.social_error and self.social_error[0] in url:
+            raise self.social_error[1]
+        if url.endswith("createSession"):
+            return {"did": "did:plc:me", "accessJwt": "jwt"}
+        if url.endswith("uploadBlob"):
+            assert headers["Authorization"] == "Bearer jwt" and headers["Content-Type"] == "image/jpeg"
+            self.thumbs += 1
+            return {"blob": {"$type": "blob", "ref": {"$link": "cid"}}}
+        if url.endswith("createRecord"):
+            assert headers["Authorization"] == "Bearer jwt"
+            return {"uri": "at://x"}
+        if url.endswith("/threads"):
+            return {"id": f"c{len(self.sent)}"}
+        if url.endswith("/threads_publish"):
+            return {"id": "p1"}
         raise AssertionError(url)
 
     def post_json(self, service, url, payload):
@@ -104,6 +134,10 @@ class Base(unittest.TestCase):
         os.environ["WORKER_URL"] = ""
         self.fake = Fake()
         self._orig = (net.get_json, net.post_json, net.get_bytes, net.resolve)
+        self._send = net.send
+        net.send = self.fake.send
+        for name in ("BLUESKY_HANDLE", "BLUESKY_APP_PASSWORD", "THREADS_TOKEN"):
+            os.environ[name] = ""
         net.get_json, net.post_json = self.fake.get_json, self.fake.post_json
         net.get_bytes = lambda service, url: None
         net.resolve = lambda url: "https://www.tiktok.com/@rider/video/7300000000000000001?x=1"
@@ -111,7 +145,8 @@ class Base(unittest.TestCase):
                           TELEGRAM_CHANNEL="@chan", TELEGRAM_ADMIN_IDS="42")
         self._cfg = {k: getattr(cfg, k) for k in (
             "MODERATION", "POPULAR_MIN_VIEWS", "FRESH_MAX_AGE_HOURS",
-            "FRESH_MIN_VIEWS", "FRESH_MIN_VELOCITY", "TOP_ENABLED", "MAX_POSTS_PER_RUN")}
+            "FRESH_MIN_VIEWS", "FRESH_MIN_VELOCITY", "TOP_ENABLED", "MAX_POSTS_PER_RUN",
+            "SOCIAL_MAX_PER_RUN", "THREADS_REFRESH_DAYS")}
         # тесты не должны зависеть от того, как настроен боевой config.py
         cfg.MODERATION = False
         cfg.TOP_ENABLED = False     # подборку дня проверяет отдельный набор тестов
@@ -122,6 +157,9 @@ class Base(unittest.TestCase):
         for k, v in self._cfg.items():
             setattr(cfg, k, v)
         net.get_json, net.post_json, net.get_bytes, net.resolve = self._orig
+        net.send = self._send
+        for name in ("BLUESKY_HANDLE", "BLUESKY_APP_PASSWORD", "THREADS_TOKEN"):
+            os.environ[name] = ""
         self.tmp.cleanup()
 
     def feed(self):
@@ -893,3 +931,150 @@ class WorkerMode(Base):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OtherNetworks(Base):
+    """Анонсы роликов и подборки дня в Bluesky и Threads."""
+
+    def records(self):
+        return [body["record"] for url, body in self.fake.sent if url.endswith("createRecord")]
+
+    def calls(self, tail):
+        return [body for url, body in self.fake.sent if url.endswith(tail)]
+
+    def test_nothing_is_sent_without_secrets(self):
+        Pipeline.seed(self)
+        app.run(T)
+        self.assertEqual(self.fake.sent, [])
+        self.assertNotIn("social", self.db()["items"]["yt:popular0001"])
+
+    def test_bluesky_post_per_clip_once(self):
+        os.environ.update(BLUESKY_HANDLE="@gta6hot.bsky.social", BLUESKY_APP_PASSWORD="pw")
+        net.get_bytes = lambda service, url: b"\xff\xd8jpeg"
+        Pipeline.seed(self)
+        app.run(T)
+        self.assertEqual(self.calls("createSession"), [{"identifier": "gta6hot.bsky.social", "password": "pw"}])
+        recs = self.records()
+        self.assertEqual(len(recs), 2)                            # два ролика вышли в ленте
+        rec = next(r for r in recs if "popular0001" in r["embed"]["external"]["uri"])
+        self.assertEqual(rec["embed"]["external"]["uri"], f"{cfg.SITE_URL}c/yt-popular0001/#feed")
+        self.assertEqual(rec["embed"]["external"]["thumb"]["ref"], {"$link": "cid"})
+        self.assertTrue(rec["text"].endswith("#GTA6 #GTAVI #gaming"))
+        self.assertLessEqual(len(rec["text"]), 300)
+        raw = rec["text"].encode()
+        tags = [raw[f["index"]["byteStart"]:f["index"]["byteEnd"]].decode() for f in rec["facets"]]
+        self.assertEqual(tags, ["#GTA6", "#GTAVI", "#gaming"])    # позиции в байтах, не в знаках
+        self.assertEqual([f["features"][0]["tag"] for f in rec["facets"]], ["GTA6", "GTAVI", "gaming"])
+        app.run(T + timedelta(minutes=10))                        # повторно не уходит
+        self.assertEqual(len(self.records()), 2)
+        self.assertEqual(self.db()["items"]["yt:popular0001"]["social"], {"bsky": "done"})
+
+    def test_bluesky_keeps_pace_and_skips_old_clips(self):
+        os.environ.update(BLUESKY_HANDLE="h", BLUESKY_APP_PASSWORD="pw")
+        cfg.MAX_POSTS_PER_RUN, cfg.SOCIAL_MAX_PER_RUN = 10, 2
+        DailyTop.seed(self, count=5)
+        app.run(T)
+        self.assertEqual(len(self.records()), 2)                  # не больше двух за проход
+        app.run(T + timedelta(minutes=10))
+        self.assertEqual(len(self.records()), 4)
+        app.run(T + timedelta(hours=cfg.SOCIAL_WINDOW_HOURS, minutes=20))
+        self.assertEqual(len(self.records()), 4)                  # пятый устарел: не догоняем
+
+    def test_bluesky_bad_password_alerts_admin_once_a_day(self):
+        os.environ.update(BLUESKY_HANDLE="h", BLUESKY_APP_PASSWORD="wrong")
+        self.fake.social_error = ("createSession", net.ApiError("bluesky", 401, "AuthenticationRequired"))
+        Pipeline.seed(self)
+        self.assertEqual(app.run(T), 2)                           # основная работа не пострадала
+        app.run(T + timedelta(minutes=10))
+        alerts = [r for r in self.fake.replies if "Bluesky" in r["text"]]
+        self.assertEqual(len(alerts), 1)
+        self.assertIn("BLUESKY_APP_PASSWORD", alerts[0]["text"])
+        self.fake.social_error = None                             # пароль исправили: записи уходят
+        app.run(T + timedelta(minutes=20))
+        self.assertEqual(len(self.records()), 2)
+
+    def test_threads_posts_in_two_steps(self):
+        os.environ["THREADS_TOKEN"] = "tok"
+        Pipeline.seed(self)
+        app.run(T)
+        made = self.calls("/threads")
+        self.assertEqual(len(made), 2)
+        one = next(m for m in made if "popular0001" in m["link_attachment"])
+        self.assertEqual(one["media_type"], "TEXT")
+        self.assertEqual(one["link_attachment"], f"{cfg.SITE_URL}c/yt-popular0001/#feed")
+        self.assertTrue(one["text"].endswith("\n\n#GTA6"))
+        self.assertEqual(one["access_token"], "tok")
+        self.assertTrue(all("/v1.0/777/threads" in url for url, _ in self.fake.sent if "threads" in url.rsplit("/", 1)[-1]))
+        self.assertEqual(self.calls("/threads_publish"), [])     # публикация на следующем проходе
+        app.run(T + timedelta(minutes=10))
+        self.assertEqual(len(self.calls("/threads_publish")), 2)
+        self.assertEqual(len(self.calls("/threads")), 2)
+        self.assertEqual(self.db()["items"]["yt:popular0001"]["social"], {"threads": "done"})
+        app.run(T + timedelta(minutes=20))
+        self.assertEqual(len(self.calls("/threads_publish")), 2)
+
+    def test_threads_started_post_is_finished_even_when_clip_is_old(self):
+        os.environ["THREADS_TOKEN"] = "tok"
+        Pipeline.seed(self)
+        app.run(T)
+        app.run(T + timedelta(hours=cfg.SOCIAL_WINDOW_HOURS + 1))
+        self.assertEqual(len(self.calls("/threads_publish")), 2)
+
+    def test_threads_token_is_refreshed_and_stored_encrypted(self):
+        os.environ["THREADS_TOKEN"] = "tok"
+        cfg.THREADS_REFRESH_DAYS = 8 / (24 * 60)                  # для теста: раз в 8 минут
+        Pipeline.seed(self)
+        app.run(T)
+        self.assertEqual(self.calls("/refresh_access_token"), [])
+        self.assertEqual({c["access_token"] for c in self.calls("/threads")}, {"tok"})
+        app.run(T + timedelta(minutes=10))
+        self.assertEqual([c["access_token"] for c in self.calls("/refresh_access_token")], ["tok"])
+        self.assertEqual({c["access_token"] for c in self.calls("/threads_publish")}, {"tok+"})   # уже продлённым
+        with open(store.DB_PATH, encoding="utf-8") as f:
+            raw = f.read()
+        self.assertNotIn("tok+", raw)                             # в базе только шифртекст
+        self.assertTrue(json.loads(raw)["state"]["threads"]["token"])
+        app.run(T + timedelta(minutes=15))
+        self.assertEqual(len(self.calls("/refresh_access_token")), 1)          # не раньше срока
+        os.environ["THREADS_TOKEN"] = "brand-new"                 # владелец положил новый ключ
+        self.fake.videos["freshslow01"]["statistics"]["viewCount"] = "150000"
+        app.run(T + timedelta(minutes=30))
+        self.assertEqual(self.calls("/threads")[-1]["access_token"], "brand-new")
+        self.assertNotIn("token", self.db()["state"]["threads"])
+
+    def test_threads_expired_token_alerts_admin(self):
+        os.environ["THREADS_TOKEN"] = "old"
+        body = '{"error":{"message":"Error validating access token","type":"OAuthException","code":190}}'
+        self.fake.social_error = ("graph.threads.com", net.ApiError("threads", 400, body))
+        Pipeline.seed(self)
+        self.assertEqual(app.run(T), 2)
+        alerts = [r for r in self.fake.replies if "Threads" in r["text"]]
+        self.assertEqual(len(alerts), 1)
+        self.assertIn("THREADS_TOKEN", alerts[0]["text"])
+
+    def test_broken_post_is_dropped_after_three_tries(self):
+        os.environ.update(BLUESKY_HANDLE="h", BLUESKY_APP_PASSWORD="pw")
+        self.fake.social_error = ("createRecord", net.ApiError("bluesky", 400, "InvalidRequest"))
+        Pipeline.seed(self)
+        for n in range(4):
+            app.run(T + timedelta(minutes=10 * n))
+        self.assertEqual(self.db()["items"]["yt:popular0001"]["social"], {"bsky": "failed"})
+        self.assertEqual(len(self.calls("createRecord")), 6)      # по три попытки на каждый из двух
+        self.assertEqual([r for r in self.fake.replies if "Bluesky" in r["text"]], [])   # это не про ключ
+
+    def test_daily_top_goes_to_other_networks(self):
+        os.environ.update(BLUESKY_HANDLE="h", BLUESKY_APP_PASSWORD="pw", THREADS_TOKEN="tok")
+        cfg.TOP_ENABLED, cfg.MAX_POSTS_PER_RUN, cfg.SOCIAL_MAX_PER_RUN = True, 10, 10
+        evening = T.replace(hour=cfg.TOP_HOUR_UTC, minute=5)
+        DailyTop.seed(self)
+        app.run(evening)
+        tops = [r for r in self.records() if r["embed"]["external"]["uri"] == f"{cfg.SITE_URL}top/#feed"]
+        self.assertEqual(len(tops), 1)
+        self.assertIn("Top 5 GTA 6 clips of the day", tops[0]["text"])
+        self.assertLessEqual(len(tops[0]["text"]), 300)
+        app.run(evening + timedelta(minutes=10))
+        app.run(evening + timedelta(minutes=20))
+        tops = [r for r in self.records() if r["embed"]["external"]["uri"] == f"{cfg.SITE_URL}top/#feed"]
+        self.assertEqual(len(tops), 1)
+        published = [c for c in self.calls("/threads") if c["link_attachment"] == f"{cfg.SITE_URL}top/#feed"]
+        self.assertEqual(len(published), 1)
