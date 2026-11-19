@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTA6 NEWS</title>
+<meta name="description" content="The funniest GTA 6 clips from YouTube, TikTok and Instagram in one feed. Unofficial fan project.">
+<style>
+  :root {
+    --bg: #0c0a12; --card: #17131f; --line: #2a2436;
+    --text: #f3eef8; --dim: #9d93ad;
+    --a1: #ff4f9a; --a2: #ff9a3d;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  header {
+    position: sticky; top: 0; z-index: 5;
+    background: rgba(12, 10, 18, .92); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar { max-width: 1200px; margin: 0 auto; padding: 12px 16px 10px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  h1 {
+    margin: 0; font-size: 22px; font-weight: 800; letter-spacing: .02em;
+    background: linear-gradient(90deg, var(--a1), var(--a2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .tg {
+    display: none; padding: 7px 14px; border-radius: 999px; white-space: nowrap;
+    background: linear-gradient(90deg, var(--a1), var(--a2));
+    color: #1a0f14; font-weight: 700; font-size: 14px; text-decoration: none;
+  }
+  .tagline { margin: 2px 0 10px; color: var(--dim); font-size: 13px; }
+  .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line);
+    background: transparent; color: var(--dim); font: inherit; font-size: 14px;
+    cursor: pointer; white-space: nowrap;
+  }
+  .chip[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+  main { max-width: 1200px; margin: 0 auto; padding: 16px; }
+  .grid { display: grid; gap: 18px; align-items: start; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    overflow: hidden; scroll-margin-top: 130px;
+  }
+  .card.target { border-color: var(--a1); box-shadow: 0 0 0 2px rgba(255, 79, 154, .35); }
+  .player {
+    position: relative; aspect-ratio: 9 / 16; background: #000;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .player.ig { aspect-ratio: 9 / 19; background: #fff; }
+  .player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .ph { color: #5d5470; font-size: 14px; text-align: center; padding: 0 20px; }
+  .info { padding: 12px 14px 14px; }
+  .title {
+    margin: 0 0 6px; font-size: 15px; font-weight: 600;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+  .meta { color: var(--dim); font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+  .meta a { color: var(--a2); text-decoration: none; }
+  .more {
+    display: none; margin: 22px auto 0; padding: 12px 28px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--card); color: var(--text);
+    font: inherit; font-weight: 600; cursor: pointer;
+  }
+  .empty { color: var(--dim); text-align: center; padding: 60px 16px; }
+  footer {
+    max-width: 1200px; margin: 0 auto; padding: 26px 16px 40px;
+    color: #6f6680; font-size: 12px; text-align: center;
+  }
+  @media (max-width: 640px) {
+    main { padding: 12px; }
+    .grid { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="top">
+      <h1 id="site-title">GTA6 NEWS</h1>
+      <a class="tg" id="tg" target="_blank" rel="noopener">Telegram</a>
+    </div>
+    <p class="tagline" id="tagline">The funniest GTA 6 clips in one feed. Unofficial fan project.</p>
+    <div class="chips" id="chips" role="group" aria-label="Filter by platform">
+      <button class="chip" data-p="all" aria-pressed="true">All</button>
+      <button class="chip" data-p="yt" aria-pressed="false">YouTube</button>
+      <button class="chip" data-p="tt" aria-pressed="false">TikTok</button>
+      <button class="chip" data-p="ig" aria-pressed="false">Instagram</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty" hidden>No clips yet. Check back soon.</p>
+  <button class="more" id="more">Show more</button>
+  <noscript><p class="empty">Please enable JavaScript to watch the feed.</p></noscript>
+</main>
+
+<footer>
+  Unofficial fan project. Not affiliated with Rockstar Games or Take-Two Interactive.<br>
+  All clips belong to their creators and are played through the platforms' official embedded players.
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  var PAGE = 12;
+  var NAMES = { yt: 'YouTube', tt: 'TikTok', ig: 'Instagram' };
+  var all = [], filter = 'all', shown = PAGE;
+  var grid = document.getElementById('grid');
+  var more = document.getElementById('more');
+  var empty = document.getElementById('empty');
+
+  function embedUrl(it) {
+    var id = encodeURIComponent(it.id);
+    if (it.platform === 'yt') return 'https://www.youtube.com/embed/' + id + '?playsinline=1&rel=0';
+    if (it.platform === 'tt') return 'https://www.tiktok.com/player/v1/' + id + '?rel=0&description=0&music_info=0';
+    if (it.platform === 'ig') return 'https://www.instagram.com/reel/' + id + '/embed/';
+    return null;
+  }
+
+  function fmtViews(n) {
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace('.0', '') + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1).replace('.0', '') + 'K';
+    return String(n);
+  }
+
+  function ago(iso) {
+    var m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+    if (m < 1) return 'just now';
+    if (m < 60) return m + ' min ago';
+    if (m < 1440) return Math.round(m / 60) + ' h ago';
+    return Math.round(m / 1440) + ' d ago';
+  }
+
+  function span(text) {
+    var s = document.createElement('span');
+    s.textContent = text;
+    return s;
+  }
+
+  // Плеер создаётся, когда карточка подходит к экрану, и убирается, когда
+  // уезжает далеко: страница не грузит десятки плееров разом, а ролик,
+  // который пролистали, перестаёт играть.
+  var mounter = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) mount(e.target); });
+  }, { rootMargin: '500px 0px' });
+  var unmounter = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (!e.isIntersecting) unmount(e.target); });
+  }, { rootMargin: '2500px 0px' });
+
+  function mount(box) {
+    if (box.querySelector('iframe') || !box.dataset.src) return;
+    var f = document.createElement('iframe');
+    f.src = box.dataset.src;
+    f.title = box.dataset.title || 'Video';
+    f.loading = 'lazy';
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen; web-share';
+    f.allowFullscreen = true;
+    f.referrerPolicy = 'strict-origin-when-cross-origin';
+    box.appendChild(f);
+  }
+  function unmount(box) {
+    var f = box.querySelector('iframe');
+    if (f) f.remove();
+  }
+
+  function card(it) {
+    var el = document.createElement('article');
+    el.className = 'card';
+    el.id = it.platform + '-' + it.id;
+
+    var box = document.createElement('div');
+    box.className = 'player ' + it.platform;
+    box.dataset.src = embedUrl(it) || '';
+    box.dataset.title = it.title || '';
+    var ph = document.createElement('div');
+    ph.className = 'ph';
+    ph.textContent = (NAMES[it.platform] || '') + ' · loading player…';
+    box.appendChild(ph);
+    el.appendChild(box);
+
+    var info = document.createElement('div');
+    info.className = 'info';
+    var h = document.createElement('h2');
+    h.className = 'title';
+    h.textContent = it.title || 'GTA 6 clip';
+    info.appendChild(h);
+
+    var meta = document.createElement('div');
+    meta.className = 'meta';
+    if (it.author) meta.appendChild(span(it.author));
+    if (it.views) meta.appendChild(span(fmtViews(it.views) + ' views'));
+    if (it.posted_at) meta.appendChild(span(ago(it.posted_at)));
+    if (typeof it.url === 'string' && it.url.indexOf('https://') === 0) {
+      var a = document.createElement('a');
+      a.href = it.url; a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = 'Open on ' + (NAMES[it.platform] || 'source');
+      meta.appendChild(a);
+    }
+    info.appendChild(meta);
+    el.appendChild(info);
+
+    mounter.observe(box);
+    unmounter.observe(box);
+    return el;
+  }
+
+  function visible() {
+    return all.filter(function (it) { return filter === 'all' || it.platform === filter; });
+  }
+
+  function render() {
+    var list = visible();
+    mounter.disconnect(); unmounter.disconnect();
+    grid.textContent = '';
+    list.slice(0, shown).forEach(function (it) { grid.appendChild(card(it)); });
+    empty.hidden = list.length > 0;
+    more.style.display = list.length > shown ? 'block' : 'none';
+  }
+
+  function jumpToHash() {
+    var id = decodeURIComponent(location.hash.slice(1));
+    if (!id) return;
+    var idx = -1;
+    visible().forEach(function (it, i) { if (it.platform + '-' + it.id === id) idx = i; });
+    if (idx < 0) return;
+    if (idx >= shown) { shown = Math.ceil((idx + 1) / PAGE) * PAGE; render(); }
+    var el = document.getElementById(id);
+    if (el) { el.classList.add('target'); el.scrollIntoView({ block: 'start' }); }
+  }
+
+  document.getElementById('chips').addEventListener('click', function (e) {
+    var b = e.target.closest('.chip');
+    if (!b) return;
+    filter = b.dataset.p; shown = PAGE;
+    document.querySelectorAll('.chip').forEach(function (c) {
+      c.setAttribute('aria-pressed', String(c === b));
+    });
+    render();
+  });
+  more.addEventListener('click', function () { shown += PAGE; render(); });
+  window.addEventListener('hashchange', jumpToHash);
+
+  fetch('feed.json?_=' + Date.now())
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (data) {
+      all = (data.items || []).filter(function (it) { return it && it.id && embedUrl(it); });
+      if (data.title) {
+        document.title = data.title;
+        document.getElementById('site-title').textContent = data.title;
+      }
+      if (data.tagline) document.getElementById('tagline').textContent = data.tagline;
+      if (typeof data.telegram_url === 'string' && data.telegram_url.indexOf('https://t.me/') === 0) {
+        var tg = document.getElementById('tg');
+        tg.href = data.telegram_url; tg.style.display = 'inline-block';
+      }
+      render();
+      jumpToHash();
+    })
+    .catch(function () {
+      empty.textContent = 'Could not load the feed. Please refresh the page.';
+      empty.hidden = false;
+    });
+})();
+</script>
+</body>
+</html>
