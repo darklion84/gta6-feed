@@ -1,0 +1,35 @@
+name: channel
+
+# Разовая настройка Telegram-канала: название и описание. Запускается вручную.
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: "Новое название канала (пусто: не менять)"
+        required: false
+        default: ""
+      description:
+        description: "Новое описание (пусто: не менять; \\n = перенос строки)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m feed.channel_setup
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL: ${{ secrets.TELEGRAM_CHANNEL }}
+          NEW_TITLE: ${{ inputs.title }}
+          NEW_DESCRIPTION: ${{ inputs.description }}
