@@ -20,7 +20,7 @@ def vid(id_, title, views, age_h, duration=40, channel="UC1", **kw):
                 "publishedAt": store.iso(T - timedelta(hours=age_h)),
                 "liveBroadcastContent": "none"},
             "contentDetails": {"duration": f"PT{duration}S"},
-            "statistics": {"viewCount": str(views), "likeCount": "10"}}
+            "statistics": {"viewCount": str(views), "likeCount": "10", "commentCount": "3"}}
 
 
 class Fake:
@@ -492,6 +492,46 @@ class Forwards(Base):
         self.assertEqual(app.run(T), 0)
         self.assertEqual([i["status"] for i in self.db()["items"].values()], ["failed"])
         self.assertIn("запретил пересылку", self.fake.replies[-1]["text"])
+
+
+class Tracking(Base):
+    """После решения админа сборщик продолжает следить за реакцией зрителей."""
+
+    def test_decided_clips_keep_getting_fresh_numbers(self):
+        cfg.MODERATION = True
+        Pipeline.seed(self)
+        app.run(T)
+        self.fake.updates += [
+            {"update_id": 1, "callback_query": {"id": "a", "from": {"id": 42}, "data": "ok|yt:popular0001"}},
+            {"update_id": 2, "callback_query": {"id": "b", "from": {"id": 42}, "data": "no|yt:freshfast01"}},
+        ]
+        app.run(T + timedelta(minutes=10))
+        for vid_id, views in (("popular0001", 900_000), ("freshfast01", 21_000)):
+            self.fake.videos[vid_id]["statistics"].update(viewCount=str(views), likeCount="77", commentCount="9")
+        app.run(T + timedelta(minutes=80))
+        items = self.db()["items"]
+        ok, no = items["yt:popular0001"], items["yt:freshfast01"]
+        self.assertEqual((ok["views"], ok["likes"], ok["comments"]), (900_000, 77, 9))
+        self.assertEqual(ok["shown"], {"views": 500_000, "likes": 10, "comments": 3})   # как было при показе
+        self.assertEqual((no["views"], no["shown"]["views"]), (21_000, 20_000))         # пропущенные тоже
+        self.assertEqual(self.feed()["items"][0]["views"], 900_000)                     # и на сайте свежие цифры
+        self.assertNotIn("shown", items["yt:freshslow01"])                              # без решения не следим
+
+    def test_tracking_stops_for_old_clips_and_is_throttled(self):
+        Pipeline.seed(self)
+        app.run(T)                                   # автопубликация: popular0001 опубликован
+        calls = []
+        real = self.fake.get_json
+        def spy(service, url, params=None, headers=None):
+            if url.endswith("/videos"):
+                calls.append(params["id"])
+            return real(service, url, params, headers)
+        net.get_json = spy
+        app.run(T + timedelta(minutes=70)); n1 = sum("popular0001" in c for c in calls)
+        app.run(T + timedelta(minutes=80)); n2 = sum("popular0001" in c for c in calls)
+        self.assertEqual((n1, n2), (1, 1))           # не чаще раза в час
+        app.run(T + timedelta(hours=cfg.TRACK_HOURS + 1)); n3 = sum("popular0001" in c for c in calls)
+        self.assertEqual(n3, 1)                      # ролик старше окна: больше не опрашиваем
 
 
 class Reuploads(Base):

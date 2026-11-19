@@ -78,7 +78,7 @@ def yt_item(v, t, source="search"):
         "url": f"https://www.youtube.com/shorts/{v['id']}",
         "title": v["title"], "author": v["author"], "channel_id": v["channel_id"],
         "published_at": v["published_at"], "duration": v["duration"],
-        "views": v["views"], "likes": v["likes"],
+        "views": v["views"], "likes": v["likes"], "comments": v.get("comments", 0),
         "status": "new", "source": source, "found_at": store.iso(t),
     }
 
@@ -338,9 +338,10 @@ def refresh_stats(db, t, skip):
                 if v is None:
                     i["status"] = "expired"      # удалён или скрыт автором
                 else:
-                    i["views"], i["likes"] = v["views"], v["likes"]
+                    i["views"], i["likes"], i["comments"] = v["views"], v["likes"], v.get("comments", 0)
         except net.ApiError as e:
             log.warning("статистика не обновлена: %s", e)
+    track_decided(db, t)
     for i in db["items"].values():
         if i["status"] == "pending":
             if store.hours_since(i["mod_sent_at"], t) > cfg.MOD_TIMEOUT_HOURS:
@@ -351,6 +352,43 @@ def refresh_stats(db, t, skip):
                 i["status"] = "expired"
             elif not title_ok(i.get("title")):
                 i["status"] = "rejected"     # фильтры в config.py ужесточили уже после находки
+
+
+def track_decided(db, t):
+    """Как зрители реагируют на ролики, по которым админ уже решил (см. TRACK_HOURS)."""
+    st = db["state"]
+    if not (cfg.TRACK_HOURS and youtube.api_key()):
+        return
+    last = st.get("last_track_at")
+    if last and store.hours_since(last, t) * 60 < cfg.TRACK_EVERY_MIN - 2:
+        return
+    watched = [i for i in db["items"].values()
+               if i["platform"] == "yt" and i.get("published_at") and was_decided(i)
+               and store.hours_since(i["published_at"], t) <= cfg.TRACK_HOURS]
+    if not watched:
+        return
+    st["last_track_at"] = store.iso(t)
+    try:
+        fresh = {v["id"]: v for v in youtube.details([i["id"] for i in watched])}
+    except net.ApiError as e:
+        log.warning("реакция зрителей не обновлена: %s", e)
+        return
+    for i in watched:
+        v = fresh.get(i["id"])
+        if v is None:
+            continue
+        # что было на счётчиках, когда ролик показали админу: запоминаем один раз
+        i.setdefault("shown", {"views": i.get("views", 0), "likes": i.get("likes", 0),
+                               "comments": i.get("comments", 0)})
+        i["views"], i["likes"], i["comments"] = v["views"], v["likes"], v.get("comments", 0)
+        i["tracked_at"] = store.iso(t)
+    log.info("реакция зрителей обновлена: %d роликов", len(watched))
+
+
+def was_decided(item):
+    """По ролику есть решение админа: опубликован или пропущен после показа."""
+    return item["status"] == "published" or (
+        item["status"] == "rejected" and bool(item.get("mod_sent_at")))
 
 
 # --- 4. публикация и модерация ----------------------------------------------------

@@ -60,6 +60,7 @@ def details(ids):
                 "duration": parse_duration(v.get("contentDetails", {}).get("duration")),
                 "views": int(st.get("viewCount", 0) or 0),
                 "likes": int(st.get("likeCount", 0) or 0),
+                "comments": int(st.get("commentCount", 0) or 0),
             })
     return out
 
