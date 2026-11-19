@@ -233,6 +233,8 @@
       active = e.target;
       mount(active);
       if (active.id) history.replaceState(null, '', '#' + active.id);
+      remember(active);
+      if (active.classList.contains('about')) startPolling(); else stopPolling();
     });
   }, { root: feed, threshold: 0.6 });
 
@@ -286,7 +288,8 @@
   function aboutSlide(empty) {
     var slide = el('section', 'slide about');
     slide.appendChild(el('h2', null, empty ? 'No clips yet' : "You're all caught up"));
-    slide.appendChild(el('p', null, empty ? 'Check back soon.' : (meta.tagline || '')));
+    slide.appendChild(el('p', null, empty ? 'Check back soon.'
+      : 'New clips will start playing here as soon as they are posted.'));
     if (meta.telegram) {
       var a = el('a', 'tg', 'New clips on Telegram');
       a.href = meta.telegram; a.target = '_blank'; a.rel = 'noopener';
@@ -298,6 +301,39 @@
     return slide;
   }
 
+  // Где зритель остановился в прошлый раз (в этом браузере). "end:ID" значит,
+  // что он досмотрел ленту до конца и последним был ролик ID.
+  var STORE_KEY = 'gta6feed.at';
+  function recall() {
+    try { return localStorage.getItem(STORE_KEY) || ''; } catch (e) { return ''; }
+  }
+  function remember(slide) {
+    if (filter !== 'all') return;
+    var value = slide.id;
+    if (!value && slide.previousElementSibling) value = 'end:' + slide.previousElementSibling.id;
+    try { if (value) localStorage.setItem(STORE_KEY, value); } catch (e) { /* хранилище недоступно */ }
+  }
+
+  // С какого ролика начать показ. Лента идёт от старых к новым, как переписка:
+  // новые ролики добавляются снизу, а зритель продолжает с того места, где остановился.
+  function startSlide(list) {
+    var hash = decodeURIComponent(location.hash.slice(1));
+    var byHash = hash && document.getElementById(hash);
+    if (byHash && byHash.classList.contains('slide')) return byHash;      // пришли по ссылке на ролик
+    var at = filter === 'all' ? recall() : '';
+    if (at) {
+      var done = at.indexOf('end:') === 0;
+      var last = document.getElementById(done ? at.slice(4) : at);
+      if (last) return done ? last.nextElementSibling : last;
+    }
+    // первый визит: с роликов за последние сутки, а если таких нет, с десяти последних
+    var dayAgo = Date.now() - 24 * 3600 * 1000, idx = Math.max(0, list.length - 10);
+    for (var i = 0; i < list.length; i++) {
+      if (new Date(list[i].posted_at).getTime() >= dayAgo) { idx = i; break; }
+    }
+    return list.length ? document.getElementById(list[idx].platform + '-' + list[idx].id) : null;
+  }
+
   function render() {
     watcher.disconnect();
     active = null;
@@ -305,14 +341,46 @@
     var list = all.filter(function (it) { return filter === 'all' || it.platform === filter; });
     list.forEach(function (it, i) { feed.appendChild(clipSlide(it, i === 0)); });
     feed.appendChild(aboutSlide(list.length === 0));
-    feed.scrollTop = 0;
+    var start = startSlide(list);
+    if (start) start.scrollIntoView(); else feed.scrollTop = 0;
     feed.querySelectorAll('.slide').forEach(function (s) { watcher.observe(s); });
   }
 
-  function jumpToHash() {
-    var id = decodeURIComponent(location.hash.slice(1));
-    var target = id && document.getElementById(id);
-    if (target && target.classList.contains('slide')) target.scrollIntoView();
+  function byTime(a, b) {
+    return a.posted_at < b.posted_at ? -1 : a.posted_at > b.posted_at ? 1 : 0;
+  }
+  function usable(it) { return it && it.id && embedUrl(it); }
+
+  // Зритель досмотрел до конца: раз в минуту проверяем, не вышло ли новое.
+  // Новые ролики встают в конец ленты, и показ продолжается сам.
+  var POLL_MS = 60000, poll = null;
+  function startPolling() { if (!poll) poll = setInterval(refresh, POLL_MS); }
+  function stopPolling() { if (poll) { clearInterval(poll); poll = null; } }
+  function refresh() {
+    fetch('feed.json?_=' + Date.now())
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) return;
+        var known = {};
+        all.forEach(function (it) { known[it.platform + '-' + it.id] = true; });
+        var fresh = (data.items || []).filter(function (it) {
+          return usable(it) && !known[it.platform + '-' + it.id];
+        }).sort(byTime);
+        if (!fresh.length) return;
+        var wasEmpty = all.length === 0;
+        all = all.concat(fresh);
+        if (wasEmpty) { render(); return; }
+        var end = feed.querySelector('.slide.about'), atEnd = active === end, firstNew = null;
+        fresh.forEach(function (it) {
+          if (filter !== 'all' && it.platform !== filter) return;
+          var slide = clipSlide(it, false);
+          feed.insertBefore(slide, end);
+          watcher.observe(slide);
+          firstNew = firstNew || slide;
+        });
+        if (firstNew && atEnd) firstNew.scrollIntoView({ behavior: 'smooth' });
+      })
+      .catch(function () { /* нет сети: попробуем в следующий раз */ });
   }
 
   document.getElementById('chips').addEventListener('click', function (e) {
@@ -335,7 +403,7 @@
   fetch('feed.json?_=' + Date.now())
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(function (data) {
-      all = (data.items || []).filter(function (it) { return it && it.id && embedUrl(it); });
+      all = (data.items || []).filter(usable).sort(byTime);   // от старых к новым
       meta.tagline = data.tagline || '';
       if (data.title) {
         document.title = data.title;
@@ -347,7 +415,6 @@
         tg.href = data.telegram_url; tg.style.display = 'block';
       }
       render();
-      jumpToHash();
     })
     .catch(function () {
       feed.textContent = '';
