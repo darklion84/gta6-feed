@@ -25,7 +25,11 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
+      # Всегда берём свежую main, а не коммит, с которого запуск был поставлен в очередь:
+      # пока запуск ждал своей очереди, предыдущий уже записал в репозиторий новую базу.
       - uses: actions/checkout@v5
+        with:
+          ref: main
 
       - uses: actions/setup-python@v6
         with:

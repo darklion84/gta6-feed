@@ -26,7 +26,11 @@ jobs:
       TELEGRAM_ADMIN_IDS: ${{ secrets.TELEGRAM_ADMIN_IDS }}
       DISPATCH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
     steps:
+      # Всегда берём свежую main, а не коммит, с которого запуск был поставлен в очередь:
+      # пока запуск ждал своей очереди, предыдущий уже записал в репозиторий новую базу.
       - uses: actions/checkout@v5
+        with:
+          ref: main
 
       - name: Проверить секреты
         id: check
