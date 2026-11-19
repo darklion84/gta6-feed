@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 DB_PATH = "data/db.json"
 FEED_PATH = "docs/feed.json"
 LINKS_PATH = "links.txt"
+CLIPS_DIR = "docs/c"                       # страницы отдельных роликов (для превью при пересылке)
 WORKER_URL_PATH = "data/worker_url.txt"   # пишет .github/workflows/worker.yml после выкладки
 
 

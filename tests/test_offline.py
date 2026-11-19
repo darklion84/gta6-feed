@@ -98,6 +98,7 @@ class Base(unittest.TestCase):
         store.FEED_PATH = os.path.join(d, "docs", "feed.json")
         store.LINKS_PATH = os.path.join(d, "links.txt")
         store.WORKER_URL_PATH = os.path.join(d, "data", "worker_url.txt")
+        store.CLIPS_DIR = os.path.join(d, "docs", "c")
         os.environ["WORKER_URL"] = ""
         self.fake = Fake()
         self._orig = (net.get_json, net.post_json, net.get_bytes, net.resolve)
@@ -492,6 +493,43 @@ class Forwards(Base):
         self.assertEqual(app.run(T), 0)
         self.assertEqual([i["status"] for i in self.db()["items"].values()], ["failed"])
         self.assertIn("запретил пересылку", self.fake.replies[-1]["text"])
+
+
+class ClipPages(Base):
+    """У каждого ролика в ленте есть страница с превью для мессенджеров."""
+
+    def page(self, slug):
+        with open(os.path.join(store.CLIPS_DIR, slug, "index.html"), encoding="utf-8") as f:
+            return f.read()
+
+    def test_pages_follow_the_feed(self):
+        Pipeline.seed(self)
+        self.fake.videos["popular0001"]["snippet"]["title"] = 'Cop <b>flips</b> "car" & more #gta6'
+        app.run(T)
+        self.assertCountEqual(os.listdir(store.CLIPS_DIR), ["yt-popular0001", "yt-freshfast01"])
+        html_ = self.page("yt-popular0001")
+        self.assertIn('<meta property="og:image" content="https://i.ytimg.com/vi/popular0001/hqdefault.jpg">', html_)
+        self.assertIn(f'<meta property="og:url" content="{cfg.SITE_URL}c/yt-popular0001/">', html_)
+        self.assertIn("Cop &lt;b&gt;flips&lt;/b&gt; &quot;car&quot; &amp; more", html_)   # название обезврежено
+        self.assertNotIn("<b>flips", html_)
+        self.assertIn('location.replace("../../#yt-popular0001")', html_)
+        # ссылка в ленте и в посте ведёт на страницу ролика
+        item = [i for i in self.feed()["items"] if i["id"] == "popular0001"][0]
+        self.assertEqual(item["page"], "c/yt-popular0001/")
+        self.assertIn(f'{cfg.SITE_URL}c/yt-popular0001/', self.fake.posts[0]["text"] + str(self.fake.posts))
+        # ролик ушёл из ленты: его страница убирается
+        self.fake.search_ids = []
+        app.run(T + timedelta(days=cfg.KEEP_DAYS + 1))
+        self.assertEqual(os.listdir(store.CLIPS_DIR), [])
+
+    def test_site_page_points_at_the_configured_address(self):
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(root, "docs", "index.html"), encoding="utf-8") as f:
+            index = f.read()
+        # адрес в мета-тегах главной прописан вручную: при смене домена обновить и его
+        self.assertIn(f'<meta property="og:url" content="{cfg.SITE_URL}">', index)
+        self.assertIn(f'<meta property="og:image" content="{cfg.SITE_URL}og.png">', index)
+        self.assertTrue(os.path.exists(os.path.join(root, "docs", "og.png")))
 
 
 class Tracking(Base):

@@ -38,7 +38,7 @@ def fmt_views(n):
 def site_link(item):
     if not cfg.SITE_URL:
         return ""
-    return f"{cfg.SITE_URL}#{item['platform']}-{item['id']}"
+    return f"{cfg.SITE_URL}c/{links.slug(item)}/"   # страница ролика: с превью и открывает ленту на нём
 
 
 def caption(item):

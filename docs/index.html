@@ -6,6 +6,15 @@
 <title>GTA6 NEWS</title>
 <meta name="description" content="The funniest GTA 6 clips from YouTube, TikTok and Instagram in one feed. Unofficial fan project.">
 <meta name="theme-color" content="#0c0a12">
+<!-- Превью при пересылке ссылки на сайт. Адрес прописан вручную: при смене домена обновить
+     здесь и в config.py (SITE_URL), за совпадением следит тест. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="GTA6 NEWS">
+<meta property="og:title" content="GTA6 NEWS: short GTA 6 clips in one feed">
+<meta property="og:description" content="The funniest GTA 6 clips from YouTube, TikTok and Instagram. Unofficial fan project.">
+<meta property="og:url" content="https://darklion84.github.io/gta6-feed/">
+<meta property="og:image" content="https://darklion84.github.io/gta6-feed/og.png">
+<meta name="twitter:card" content="summary_large_image">
 <style>
   :root {
     --bg: #0c0a12; --card: #17131f; --line: #2a2436;
@@ -86,6 +95,13 @@
     background: var(--card); color: var(--text); font-size: 16px; line-height: 1; cursor: pointer;
   }
   .nav button:disabled { opacity: .3; cursor: default; }
+  .nav .share { font-size: 17px; color: var(--a2); }
+  #toast {
+    position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 9;
+    padding: 9px 16px; border-radius: 999px; background: var(--text); color: var(--bg);
+    font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  #toast.on { opacity: 1; }
 
   .about { padding: 24px; text-align: center; color: var(--dim); font-size: 13px; }
   .about h2 { color: var(--text); font-size: 20px; margin: 0 0 8px; }
@@ -107,6 +123,7 @@
   <a class="tg" id="tg" target="_blank" rel="noopener">Telegram</a>
 </header>
 
+<div id="toast" role="status" aria-live="polite"></div>
 <main id="feed" tabindex="-1" aria-label="Clips feed">
   <noscript><p class="about">Please enable JavaScript to watch the feed.</p></noscript>
 </main>
@@ -323,8 +340,37 @@
     if (to && to.classList.contains('slide')) to.scrollIntoView({ behavior: 'smooth' });
   }
 
-  function navButtons(slide, first) {
+  var toastTimer = null;
+  function toast(text) {
+    var t = document.getElementById('toast');
+    t.textContent = text;
+    t.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('on'); }, 1800);
+  }
+
+  // Поделиться роликом: ссылка ведёт на его страницу с превью (название и кадр),
+  // а та открывает ленту сразу на этом ролике.
+  function share(it) {
+    var url = new URL(it.page || ('#' + it.platform + '-' + it.id), document.baseURI).href;
+    var title = it.title || document.title;
+    if (navigator.share) {
+      navigator.share({ title: title, url: url }).catch(function () { /* закрыли окно: ничего страшного */ });
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { toast('Link copied'); },
+                                              function () { toast(url); });
+    } else {
+      toast(url);
+    }
+  }
+
+  function navButtons(slide, first, it) {
     var nav = el('div', 'nav');
+    var send = el('button', 'share', '➦');
+    send.type = 'button';
+    send.setAttribute('aria-label', 'Share this clip');
+    send.addEventListener('click', function () { share(it); });
+    nav.appendChild(send);
     var up = el('button', null, '▲'), down = el('button', null, '▼');
     up.type = down.type = 'button';
     up.setAttribute('aria-label', 'Previous clip');
@@ -360,7 +406,7 @@
     }
     text.appendChild(m);
     info.appendChild(text);
-    info.appendChild(navButtons(slide, first));
+    info.appendChild(navButtons(slide, first, it));
     slide.appendChild(info);
     return slide;
   }

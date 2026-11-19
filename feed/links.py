@@ -51,6 +51,11 @@ def tg_post(username, message_id):
             "url": f"https://t.me/{username}/{message_id}"}
 
 
+def slug(item):
+    """Имя страницы ролика на сайте: c/<slug>/."""
+    return f"{item['platform']}-{item['id']}".replace("/", "_")
+
+
 def key(parsed):
     return f"{parsed['platform']}:{parsed['id']}"
 

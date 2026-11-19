@@ -17,7 +17,7 @@ import re
 from datetime import timedelta
 
 import config as cfg
-from . import dedup, links, net, store, telegram, worker, youtube
+from . import dedup, links, net, pages, store, telegram, worker, youtube
 
 log = logging.getLogger("feed")
 RELEVANT = [re.compile(p, re.I) for p in cfg.MUST_MATCH]
@@ -548,7 +548,8 @@ def build_feed(db, t):
     fields = ("platform", "id", "url", "title", "author", "views", "duration", "posted_at")
     feed = {"title": cfg.SITE_TITLE, "tagline": cfg.SITE_TAGLINE,
             "telegram_url": cfg.TELEGRAM_URL,
-            "items": [{f: i.get(f) for f in fields} for i in pub]}
+            "items": [{**{f: i.get(f) for f in fields}, "page": f"c/{links.slug(i)}/"} for i in pub]}
+    pages.build(pub)
     try:
         with open(store.FEED_PATH, encoding="utf-8") as f:
             old = json.load(f)
