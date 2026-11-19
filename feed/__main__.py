@@ -62,6 +62,12 @@ def qualifies(item, t):
             and velocity(item, t) >= cfg.FRESH_MIN_VELOCITY)
 
 
+def was_seen(item):
+    """Ролик уже показывали админу или он уже в канале."""
+    return item["status"] in ("published", "pending", "approved") or (
+        item["status"] == "rejected" and bool(item.get("mod_sent_at")))
+
+
 def moderated():
     return bool(cfg.MODERATION and telegram.token() and telegram.admin_ids())
 
@@ -169,8 +175,19 @@ def handle_tap(db, t, tap):
     if tap["posted"]:
         if item:                                # уже в канале, что бы ни было в базе
             item.update(status="published", posted_at=store.iso(t), mod_msgs=[])
+            item.setdefault("mod_sent_at", store.iso(t))
             log.info("опубликован воркером: %s %s", item["key"], item.get("title", "")[:60])
         return
+    if not live:
+        # Нажатие уже принял воркер, значит решение окончательное, в каком бы
+        # состоянии ни была запись. Иначе пропущенный ролик вернулся бы в очередь.
+        if tap["action"] == "no" and (not item or item["status"] != "published"):
+            platform, _, vid = tap["key"].partition(":")
+            item = item or db["items"].setdefault(tap["key"], {
+                "key": tap["key"], "platform": platform, "id": vid, "found_at": store.iso(t)})
+            item.update(status="rejected", mod_msgs=[])
+            item.setdefault("mod_sent_at", store.iso(t))
+            return
     if not item or item.get("status") != "pending":
         if live:
             telegram.answer(tap["id"], "Уже обработано")
@@ -400,9 +417,11 @@ def publish(db, t):
     items = db["items"]
     mod = moderated()
     published = [i for i in items.values() if i["status"] == "published"]
-    recent = ([p for p in published
-               if store.hours_since(p["posted_at"], t) <= cfg.DEDUP_WINDOW_HOURS]
-              + [i for i in items.values() if i["status"] in ("pending", "approved")])
+    # Всё, что админ уже видел: опубликованное, ждущее ответа и пропущенное им.
+    # Перезалив или другая нарезка любого из этих роликов повторно не предлагается.
+    recent = [i for i in items.values() if was_seen(i)
+              and store.hours_since(i.get("mod_sent_at") or i.get("posted_at") or i["found_at"], t)
+              <= cfg.DEDUP_WINDOW_HOURS]
     posted = 0
 
     # 1. то, что уже выбрал человек: одобренные кандидаты и присланные вручную ссылки
@@ -435,6 +454,9 @@ def publish(db, t):
             break
         if item["status"] != "new":
             continue  # уже помечен дублем чуть выше в этом же проходе
+        if item.get("mod_sent_at"):
+            item["status"] = "expired"   # однажды уже показывали: второй раз не предлагаем
+            continue
         item = screen(item, cands, published, recent, t)
         if item is None:
             continue

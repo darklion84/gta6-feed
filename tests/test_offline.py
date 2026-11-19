@@ -494,6 +494,72 @@ class Forwards(Base):
         self.assertIn("запретил пересылку", self.fake.replies[-1]["text"])
 
 
+class Reuploads(Base):
+    """Один и тот же клип под разными ID: админ не должен видеть его дважды."""
+
+    def test_rules_on_real_examples(self):
+        dup = lambda a, b: dedup.is_duplicate({"key": "a", **a}, {"key": "b", **b})
+        # тот же клип у другого канала: та же длина, те же слова в названии
+        self.assertTrue(dup({"title": "Bro found the first gta6 glitch 🥀", "duration": 30},
+                            {"title": "BRO FOUND A GLITCH IN GTA 6 #gta6 #glitch", "duration": 30}))
+        # то же название с теми же хэштегами, но другая нарезка
+        self.assertTrue(dup({"title": "GTA 6 😅🫢 glitch #gta6 #gta #glitch #fix #gaming", "duration": 21},
+                            {"title": "GTA 6 glitch😅😅 #gta6 #gta #glitch #fix #gaming", "duration": 35}))
+        # почти одинаковая обложка при любой длине и любом названии
+        self.assertTrue(dup({"title": "GTA 6 glitch", "duration": 21, "thumb_hash": "0bbbbf8a0969effc"},
+                            {"title": "First Secret Wall Glitch Found!", "duration": 12,
+                             "thumb_hash": "0bbbbf2a29b56ffc"}))
+        # похожая обложка при той же длине
+        self.assertTrue(dup({"title": "one", "duration": 30, "thumb_hash": "ebc70f78b81b1a9a"},
+                            {"title": "two", "duration": 30, "thumb_hash": "ebc70f9b1c3d183b"}))
+        # а это разные ролики
+        self.assertFalse(dup({"title": "GTA 6 Funny Moments Part 12 #gta6", "duration": 40},
+                             {"title": "GTA 6 Funny Moments Part 13 #gta6", "duration": 40}))
+        self.assertFalse(dup({"title": "Cop chase ends in the ocean", "duration": 33},
+                             {"title": "Cop chase ends at the airport", "duration": 33}))
+        self.assertFalse(dup({"title": "GTA 6 glitch", "duration": 20}, {"title": "GTA 6 glitch", "duration": 45}))
+        self.assertFalse(dup({"title": "one", "duration": 30, "thumb_hash": "ebc70f78b81b1a9a"},
+                             {"title": "two", "duration": 55, "thumb_hash": "ebc70f9b1c3d183b"}))
+
+    def test_reupload_of_a_skipped_clip_is_not_offered_again(self):
+        cfg.MODERATION = True
+        f = self.fake
+        f.videos = {"original001": vid("original001", "Bro found the first GTA 6 glitch", 300_000, 5, duration=30)}
+        f.search_ids = list(f.videos)
+        app.run(T)
+        self.assertEqual(len(f.candidates), 1)
+        f.updates.append({"update_id": 1, "callback_query": {"id": "cb", "from": {"id": 42},
+                                                             "data": "no|yt:original001"}})
+        # через час тот же клип находится ещё у трёх каналов, плюс один действительно новый
+        for n in range(3):
+            k = f"reupload{n:03d}"
+            f.videos[k] = vid(k, f"BRO FOUND A GLITCH IN GTA 6 #{n} #gta6", 400_000 + n, 1, duration=30, channel=f"UC{n}")
+        f.videos["different01"] = vid("different01", "GTA 6 stunt lands on a yacht", 500_000, 1, duration=30, channel="UCx")
+        f.search_ids = list(f.videos)
+        app.run(T + timedelta(hours=1))
+        shown = [c["reply_markup"]["inline_keyboard"][0][0]["callback_data"] for c in f.candidates]
+        self.assertEqual(shown, ["ok|yt:original001", "ok|yt:different01"])
+        items = self.db()["items"]
+        self.assertEqual([items[f"yt:reupload{n:03d}"]["status"] for n in range(3)], ["duplicate"] * 3)
+        # копии сначала сворачиваются между собой, а оставшаяся сверяется с пропущенным оригиналом
+        self.assertIn("yt:original001", {items[f"yt:reupload{n:03d}"]["dup_of"] for n in range(3)})
+
+    def test_reupload_of_a_published_clip_is_not_offered(self):
+        cfg.MODERATION = True
+        f = self.fake
+        f.videos = {"original001": vid("original001", "GTA 6 😅 glitch #gta6 #gta #glitch #fix #gaming", 300_000, 5, duration=21)}
+        f.search_ids = list(f.videos)
+        app.run(T)
+        f.updates.append({"update_id": 1, "callback_query": {"id": "cb", "from": {"id": 42},
+                                                             "data": "ok|yt:original001"}})
+        f.videos["recut000001"] = vid("recut000001", "GTA 6 glitch😅😅 #gta6 #gta #glitch #fix #gaming",
+                                      900_000, 1, duration=35, channel="UC9")
+        f.search_ids = list(f.videos)
+        app.run(T + timedelta(minutes=30))
+        self.assertEqual(len(f.candidates), 1)
+        self.assertEqual(self.db()["items"]["yt:recut000001"]["status"], "duplicate")
+
+
 class WorkerMode(Base):
     """Нажатия и сообщения приходят не опросом Telegram, а из очереди воркера."""
 
@@ -538,6 +604,29 @@ class WorkerMode(Base):
         app.run(T + timedelta(minutes=2))
         self.assertEqual(self.fake.acks[-1], 2)
         self.assertEqual(self.fake.worker_events, [])
+
+    def test_skip_sticks_whatever_state_the_record_is_in(self):
+        Pipeline.seed(self)
+        app.run(T)
+        # база потеряла отметку "показан": запись снова выглядит как новая
+        db = self.db()
+        db["items"]["yt:popular0001"].update(status="new", mod_msgs=[])
+        del db["items"]["yt:popular0001"]["mod_sent_at"]
+        with open(store.DB_PATH, "w", encoding="utf-8") as f:
+            json.dump(db, f)
+        sent_before = len(self.fake.candidates)
+        self.fake.worker_events = [
+            {"seq": 1, "type": "tap", "key": "yt:popular0001", "action": "no", "posted": False, "at": 1},
+            {"seq": 2, "type": "tap", "key": "yt:gone0000000", "action": "no", "posted": False, "at": 1},
+        ]
+        app.run(T + timedelta(minutes=1))
+        app.run(T + timedelta(minutes=11))
+        items = self.db()["items"]
+        self.assertEqual(items["yt:popular0001"]["status"], "rejected")      # решение не потерялось
+        self.assertEqual(items["yt:gone0000000"]["status"], "rejected")      # даже если записи не было
+        again = [c for c in self.fake.candidates[sent_before:]
+                 if c["reply_markup"]["inline_keyboard"][0][0]["callback_data"] == "ok|yt:popular0001"]
+        self.assertEqual(again, [])                                          # и ролик не предложен снова
 
     def test_message_from_queue(self):
         self.fake.worker_events = [
