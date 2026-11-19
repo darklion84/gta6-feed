@@ -75,6 +75,26 @@
   .player.tg { background: #17212b; }
   .player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   .ph { color: #5d5470; font-size: 14px; text-align: center; padding: 0 20px; }
+  .ph.off { color: var(--dim); display: flex; flex-direction: column; gap: 14px; align-items: center; }
+  .ph.off a, .ph.off button, #gate button {
+    font: inherit; font-weight: 700; border-radius: 999px; padding: 11px 22px; cursor: pointer;
+    text-decoration: none; border: 1px solid var(--line); background: var(--card); color: var(--text);
+  }
+  .ph.off a, #gate .yes {
+    background: linear-gradient(90deg, var(--a1), var(--a2)); color: #1a0f14; border-color: transparent;
+  }
+  /* Экран согласия: пока зритель не разрешил, сторонние плееры не загружаются вовсе */
+  #gate {
+    position: fixed; top: var(--head); left: 0; right: 0; bottom: 0; z-index: 8;
+    background: var(--bg); display: none; align-items: center; justify-content: center; padding: 24px;
+  }
+  #gate.on { display: flex; }
+  #gate .box { max-width: 420px; text-align: center; }
+  #gate h2 { margin: 0 0 12px; font-size: 22px; }
+  #gate p { margin: 0 0 20px; color: var(--dim); font-size: 14px; line-height: 1.5; }
+  #gate .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  #gate .more { display: block; margin-top: 18px; color: var(--dim); font-size: 13px; }
+  .about .legal { display: inline-block; margin-top: 14px; color: var(--dim); font-size: 13px; }
 
   .info {
     width: var(--pw); height: var(--info); flex: none; padding: 8px 12px 0;
@@ -127,6 +147,19 @@
 </header>
 
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+  <div class="box">
+    <h2 id="gate-title">Before you watch</h2>
+    <p>Clips here are played by the official YouTube, TikTok, Instagram and Telegram players.
+       When a player loads, that platform sets cookies and receives data such as your IP address.
+       This site itself does not use tracking cookies.</p>
+    <div class="row">
+      <button type="button" class="yes" id="gate-yes">Watch clips</button>
+      <button type="button" id="gate-no">Not now</button>
+    </div>
+    <a class="more" href="privacy.html">Privacy &amp; cookies</a>
+  </div>
+</div>
 <main id="feed" tabindex="-1" aria-label="Clips feed">
   <noscript><p class="about">Please enable JavaScript to watch the feed.</p></noscript>
 </main>
@@ -145,6 +178,30 @@
 
   var NAMES = { yt: 'YouTube', tt: 'TikTok', ig: 'Instagram', tg: 'Telegram' };
   var all = [], filter = 'all', meta = {}, active = null;
+
+  // Согласие на сторонние плееры. Плееры YouTube, TikTok, Instagram и Telegram
+  // ставят свои cookie и получают IP зрителя, поэтому до явного согласия ни один
+  // из них не загружается. Отказ тоже работает: вместо плеера показывается
+  // ссылка на ролик на исходной площадке.
+  var CONSENT_KEY = 'gta6feed.consent', consent = false;
+  try { consent = localStorage.getItem(CONSENT_KEY) === '1'; } catch (e) { /* хранилище недоступно */ }
+  var gate = document.getElementById('gate');
+  function grantConsent() {
+    consent = true;
+    try { localStorage.setItem(CONSENT_KEY, '1'); } catch (e) { /* согласие действует до закрытия вкладки */ }
+    gate.classList.remove('on');
+    render();
+  }
+  document.getElementById('gate-yes').addEventListener('click', grantConsent);
+  document.getElementById('gate-no').addEventListener('click', function () {
+    try { sessionStorage.setItem(CONSENT_KEY, 'later'); } catch (e) { /* спросим снова */ }
+    gate.classList.remove('on');
+  });
+  function askConsent() {
+    var later = false;
+    try { later = sessionStorage.getItem(CONSENT_KEY) === 'later'; } catch (e) { /* спросим */ }
+    if (!consent && !later) gate.classList.add('on');
+  }
   var feed = document.getElementById('feed');
 
   function embedUrl(it) {
@@ -189,7 +246,7 @@
   // перестаёт играть, а страница не держит десятки плееров одновременно.
   function mount(slide) {
     var box = slide.querySelector('.player');
-    if (!box || box.querySelector('iframe')) return;
+    if (!consent || !box || box.querySelector('iframe')) return;
     var f = document.createElement('iframe');
     f.src = box.dataset.src;
     f.title = box.dataset.title || 'Video';
@@ -409,7 +466,23 @@
     var box = el('div', 'player ' + it.platform);
     box.dataset.src = embedUrl(it);
     box.dataset.title = it.title || '';
-    box.appendChild(el('div', 'ph', (NAMES[it.platform] || '') + ' · loading player…'));
+    if (consent) {
+      box.appendChild(el('div', 'ph', (NAMES[it.platform] || '') + ' · loading player…'));
+    } else {
+      // плееры выключены: даём ссылку на ролик на его площадке и кнопку "включить"
+      var off = el('div', 'ph off');
+      off.appendChild(el('div', null, 'Embedded players are off.'));
+      if (typeof it.url === 'string' && it.url.indexOf('https://') === 0) {
+        var out = el('a', null, 'Watch on ' + (NAMES[it.platform] || 'the source'));
+        out.href = it.url; out.target = '_blank'; out.rel = 'noopener';
+        off.appendChild(out);
+      }
+      var on = el('button', null, 'Turn on players');
+      on.type = 'button';
+      on.addEventListener('click', grantConsent);
+      off.appendChild(on);
+      box.appendChild(off);
+    }
     slide.appendChild(box);
 
     var info = el('div', 'info');
@@ -444,6 +517,9 @@
     slide.appendChild(el('small', null,
       'Unofficial fan project. Not affiliated with Rockstar Games or Take-Two Interactive. ' +
       "All clips belong to their creators and are played through the platforms' official embedded players."));
+    var legal = el('a', 'legal', 'Privacy & cookies');
+    legal.href = 'privacy.html';
+    slide.appendChild(legal);
     return slide;
   }
 
@@ -574,6 +650,7 @@
         tg.href = data.telegram_url; tg.style.display = 'block';
       }
       render();
+      askConsent();
     })
     .catch(function () {
       feed.textContent = '';
