@@ -196,31 +196,91 @@
     }, 500);
   }
 
-  // -> true, если сообщение от плеера означает "ролик доиграл до конца"
-  function isEnded(origin, raw) {
-    var d = raw;
-    if (typeof raw === 'string') { try { d = JSON.parse(raw); } catch (e) { return false; } }
-    if (!d || typeof d !== 'object') return false;
+  // --- Сообщения от плееров -------------------------------------------------
+  // Плеер YouTube и плеер TikTok рассказывают странице, что с ними происходит,
+  // и принимают команды. Из этого складываются автопереход и "липкий" звук.
+
+  // Разбор сообщения -> { state, muted, volume } (каждое поле может отсутствовать).
+  // state: 1 играет, 2 пауза, 0 доиграл.
+  function readPlayer(origin, raw) {
+    var d = raw, out = {};
+    if (typeof raw === 'string') { try { d = JSON.parse(raw); } catch (e) { return out; } }
+    if (!d || typeof d !== 'object') return out;
     if (origin === 'https://www.youtube.com') {
-      if (d.event === 'onStateChange') return d.info === 0;
-      if (d.event === 'infoDelivery') return !!d.info && d.info.playerState === 0;
-      return false;
+      if (d.event === 'onStateChange' && typeof d.info === 'number') out.state = d.info;
+      if ((d.event === 'infoDelivery' || d.event === 'initialDelivery') && d.info) {
+        if (typeof d.info.playerState === 'number') out.state = d.info.playerState;
+        if (typeof d.info.muted === 'boolean') out.muted = d.info.muted;
+        if (typeof d.info.volume === 'number') out.volume = d.info.volume;
+      }
+    } else if (origin === 'https://www.tiktok.com' && d['x-tiktok-player'] === true) {
+      if (d.type === 'onStateChange' && typeof d.value === 'number') out.state = d.value;
+      // состояние звука запоминаем только по YouTube: там формат сообщений известен точно
     }
-    if (origin === 'https://www.tiktok.com') {
-      return d['x-tiktok-player'] === true && d.type === 'onStateChange' && d.value === 0;
-    }
-    return false;
+    return out;
+  }
+
+  function command(frame, func, arg) {
+    try {
+      if (frame.src.indexOf('https://www.youtube.com/') === 0) {
+        frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func: func,
+          args: arg === undefined ? [] : [arg], id: 1, channel: 'widget' }), 'https://www.youtube.com');
+      } else if (frame.src.indexOf('https://www.tiktok.com/') === 0) {
+        var type = { playVideo: 'play', setVolume: 'changeVolume' }[func] || func;   // mute / unMute совпадают
+        frame.contentWindow.postMessage({ type: type, value: arg, 'x-tiktok-player': true }, 'https://www.tiktok.com');
+      }
+    } catch (e) { /* плеер уже убран */ }
+  }
+
+  // "Липкий" звук. Браузер разрешает автозапуск только без звука, поэтому каждый
+  // ролик стартует беззвучно. Но если зритель один раз включил звук, страница
+  // сама включает его у следующих роликов, пока он его не выключит.
+  // Если браузер всё же не даёт включить звук без касания (так бывает на iPhone)
+  // и ставит ролик на паузу, возвращаем беззвучный показ и больше не пробуем.
+  var SOUND_KEY = 'gta6feed.sound', soundBlocked = false;
+  var sound = { on: false, volume: null };
+  try { sound.on = localStorage.getItem(SOUND_KEY) === '1'; } catch (e) { /* хранилище недоступно */ }
+  function saveSound(on) {
+    sound.on = on;
+    try { localStorage.setItem(SOUND_KEY, on ? '1' : '0'); } catch (e) { /* не страшно */ }
+  }
+
+  function applySound(frame) {
+    if (!sound.on || soundBlocked || frame.dataset.sound) return;
+    frame.dataset.sound = 'trying';
+    command(frame, 'unMute');
+    if (sound.volume !== null) command(frame, 'setVolume', sound.volume);
+    setTimeout(function () {
+      if (!frame.isConnected || frame.dataset.state !== '2') { frame.dataset.sound = 'on'; return; }
+      soundBlocked = true;                    // браузер поставил ролик на паузу вместо звука
+      frame.dataset.sound = 'blocked';
+      command(frame, 'mute');
+      command(frame, 'playVideo');
+    }, 1200);
   }
 
   window.addEventListener('message', function (e) {
     var frame = active && active.querySelector('iframe');
     if (!frame || e.source !== frame.contentWindow) return;   // слушаем только ролик на экране
     frame.dataset.heard = '1';
-    if (AUTONEXT && !frame.dataset.ended && isEnded(e.origin, e.data)) {
+    var info = readPlayer(e.origin, e.data);
+
+    if (info.state !== undefined) frame.dataset.state = String(info.state);
+    if (info.volume !== undefined) sound.volume = info.volume;
+    if (info.muted === false) {
+      frame.dataset.unmuted = '1';
+      if (!sound.on) saveSound(true);                          // зритель включил звук
+    } else if (info.muted === true && frame.dataset.unmuted && frame.dataset.sound !== 'blocked') {
+      saveSound(false);                                        // зритель сам его выключил
+    }
+    if (info.state === 1) applySound(frame);                   // ролик пошёл: включаем звук, если просили
+
+    if (AUTONEXT && info.state === 0 && !frame.dataset.ended) {
       frame.dataset.ended = '1';
       go(active, 1);
     }
   });
+
   function unmount(slide) {
     var f = slide.querySelector('iframe');
     if (f) f.remove();
