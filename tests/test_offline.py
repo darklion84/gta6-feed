@@ -660,8 +660,14 @@ class DailyTop(Base):
         self.assertLess(page.index("c/yt-topclip0005/"), page.index("c/yt-topclip0001/"))
         self.assertIn('if(location.hash==="#feed")location.replace("../#top")', page)
         # в тот же день второй подборки не будет, на следующий выйдет новая
-        app.run(self.evening + timedelta(hours=1))
+        self.fake.videos["topclip0002"]["statistics"]["viewCount"] = "800000"
+        app.run(self.evening + timedelta(hours=1, minutes=10))
         self.assertEqual(len(self.tops()), 1)
+        # состав прежний, а места на сайте следуют за свежими просмотрами
+        self.assertEqual(self.feed()["top"], [f"yt-topclip{n:04d}" for n in (2, 5, 4, 3, 1)])
+        with open(os.path.join(store.TOP_DIR, "index.html"), encoding="utf-8") as f:
+            page = f.read()
+        self.assertLess(page.index("c/yt-topclip0002/"), page.index("c/yt-topclip0005/"))
         self.fake.videos["topclip0000"]["statistics"]["viewCount"] = "900000"
         app.run(self.evening + timedelta(hours=23))               # ролики ещё в пределах суток
         self.assertEqual(len(self.tops()), 1)

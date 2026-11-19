@@ -575,9 +575,12 @@ def build_feed(db, t):
                   if i["status"] == "published" and i["platform"] in links.SITE_PLATFORMS),
                  key=lambda i: (i["posted_at"], i["key"]), reverse=True)[:cfg.FEED_SIZE]
     fields = ("platform", "id", "url", "title", "author", "views", "duration", "posted_at")
-    # подборка дня: только те её ролики, что ещё есть в ленте, в порядке мест
+    # Подборка дня: только те её ролики, что ещё есть в ленте. Состав на сутки
+    # закреплён постом в канале, а места на сайте идут по текущим просмотрам:
+    # счётчики обновляются каждый час, и иначе третье место обгоняло бы второе.
     in_feed = {i["key"]: i for i in pub}
     top = [in_feed[k] for k in db["state"].get("top", []) if k in in_feed]
+    top.sort(key=lambda i: (-(i.get("views") or 0), i["key"]))
     top_day = db["state"].get("top_day", "")
     feed = {"title": cfg.SITE_TITLE, "tagline": cfg.SITE_TAGLINE,
             "telegram_url": cfg.TELEGRAM_URL,
