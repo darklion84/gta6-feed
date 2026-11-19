@@ -294,7 +294,10 @@
       mount(active);
       if (active.id) history.replaceState(null, '', '#' + active.id);
       remember(active);
-      if (active.classList.contains('about')) startPolling(); else stopPolling();
+      // у конца ленты (последний ролик или экран "всё просмотрено") следим за новинками
+      var next = active.nextElementSibling;
+      if (active.classList.contains('about') || (next && next.classList.contains('about'))) startPolling();
+      else stopPolling();
     });
   }, { root: feed, threshold: 0.6 });
 
@@ -411,12 +414,15 @@
   }
   function usable(it) { return it && it.id && embedUrl(it); }
 
-  // Зритель досмотрел до конца: раз в минуту проверяем, не вышло ли новое.
+  // Зритель у конца ленты: каждые полминуты проверяем, не вышло ли новое.
   // Новые ролики встают в конец ленты, и показ продолжается сам.
-  var POLL_MS = 60000, poll = null;
+  var POLL_MS = 30000, poll = null;
   function startPolling() { if (!poll) poll = setInterval(refresh, POLL_MS); }
   function stopPolling() { if (poll) { clearInterval(poll); poll = null; } }
+  var refreshing = false;
   function refresh() {
+    if (refreshing) return;       // две проверки разом добавили бы новинки дважды
+    refreshing = true;
     fetch('feed.json?_=' + Date.now())
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
@@ -438,9 +444,12 @@
           watcher.observe(slide);
           firstNew = firstNew || slide;
         });
-        if (firstNew && atEnd) firstNew.scrollIntoView({ behavior: 'smooth' });
+        // В фоновой вкладке плавная прокрутка не выполняется, поэтому там листаем сразу:
+        // когда зритель вернётся, новый ролик уже будет на экране.
+        if (firstNew && atEnd) firstNew.scrollIntoView({ behavior: document.hidden ? 'auto' : 'smooth' });
       })
-      .catch(function () { /* нет сети: попробуем в следующий раз */ });
+      .catch(function () { /* нет сети: попробуем в следующий раз */ })
+      .then(function () { refreshing = false; });
   }
 
   document.getElementById('chips').addEventListener('click', function (e) {
@@ -453,6 +462,13 @@
     history.replaceState(null, '', location.pathname + location.search);
     render();
   });
+
+  // Зритель вернулся на вкладку (например, из Telegram): проверяем новинки сразу,
+  // не дожидаясь очередной проверки по таймеру.
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && all.length) refresh();
+  });
+  window.addEventListener('focus', function () { if (all.length) refresh(); });
 
   document.addEventListener('keydown', function (e) {
     if (!active || e.target.closest('button, a, input')) return;
