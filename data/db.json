@@ -177,7 +177,7 @@
    "found_at": "2026-11-19T10:58:52Z",
    "id": "-H4SotB7vG0",
    "key": "yt:-H4SotB7vG0",
-   "likes": 158,
+   "likes": 160,
    "platform": "yt",
    "published_at": "2026-11-18T18:56:43Z",
    "source": "search",
@@ -234,7 +234,7 @@
    "status": "new",
    "title": "Upss #vicecity #gta #rockstargames #gta6 #funnymoments",
    "url": "https://www.youtube.com/shorts/-UnXgNXkDAw",
-   "views": 554
+   "views": 555
   },
   "yt:-VAfuLMafEI": {
    "author": "ATW Gameplay",
@@ -275,7 +275,7 @@
    "status": "new",
    "title": "REENCUENTRO DE JASON Y LUCIA #gtavi #gta #train9 #clips #gta6  #gta6gameplay #rockstargames #gaming",
    "url": "https://www.youtube.com/shorts/-WbBm2w02FM",
-   "views": 949
+   "views": 986
   },
   "yt:-WoizlReEeM": {
    "author": "Daily Dose of GTA 6",
@@ -336,17 +336,12 @@
    "id": "-esGjwg_UPE",
    "key": "yt:-esGjwg_UPE",
    "likes": 20,
-   "mod_msgs": [
-    [
-     208061542,
-     154
-    ]
-   ],
+   "mod_msgs": [],
    "mod_sent_at": "2026-11-19T18:00:39Z",
    "platform": "yt",
    "published_at": "2026-11-19T16:00:30Z",
    "source": "search",
-   "status": "pending",
+   "status": "rejected",
    "thumb_hash": "8a21011253333373",
    "title": "GTA 6 Funny Moments: Scooter",
    "url": "https://www.youtube.com/shorts/-esGjwg_UPE",
@@ -486,14 +481,14 @@
    "found_at": "2026-11-19T10:58:52Z",
    "id": "04e2PzP1oDE",
    "key": "yt:04e2PzP1oDE",
-   "likes": 97,
+   "likes": 98,
    "platform": "yt",
    "published_at": "2026-11-18T19:07:22Z",
    "source": "search",
    "status": "new",
    "title": "This Might Be The Funniest GTA 6 Fail...",
    "url": "https://www.youtube.com/shorts/04e2PzP1oDE",
-   "views": 2812
+   "views": 2818
   },
   "yt:04psEO6lYEw": {
    "author": "Prime Papai 16",
@@ -614,6 +609,13 @@
    "url": "https://www.youtube.com/shorts/0U6Aq4SwEKI",
    "views": 1267
   },
+  "yt:0aLk7Wxc7go": {
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "0aLk7Wxc7go",
+   "key": "yt:0aLk7Wxc7go",
+   "platform": "yt",
+   "status": "rejected"
+  },
   "yt:0aOwGVJ0HeA": {
    "author": "Shorts GTA VI",
    "channel_id": "UCb8tFUZVQA0YXgAIqISYC-A",
@@ -704,14 +706,14 @@
    "found_at": "2026-11-19T15:40:45Z",
    "id": "0zgNVF6xzzw",
    "key": "yt:0zgNVF6xzzw",
-   "likes": 64,
+   "likes": 65,
    "platform": "yt",
    "published_at": "2026-11-19T13:00:08Z",
    "source": "search",
    "status": "new",
    "title": "O MELHOR JOGO DA HISTÓRIA CHEGOU!!! #gta6 #gtavi #gta #gamergirl #clips",
    "url": "https://www.youtube.com/shorts/0zgNVF6xzzw",
-   "views": 1248
+   "views": 1251
   },
   "yt:18qWHjNq3Tg": {
    "author": "F-i-double-Z",
@@ -826,7 +828,7 @@
    "status": "new",
    "title": "WTF Is This GTA 6 NPC?! 😂🤯",
    "url": "https://www.youtube.com/shorts/1VuOEXT6UFU",
-   "views": 963
+   "views": 980
   },
   "yt:1WtQsqtjCJ8": {
    "author": "VorTaxSpark",
@@ -870,17 +872,12 @@
    "id": "1_i8A4cBGGc",
    "key": "yt:1_i8A4cBGGc",
    "likes": 10,
-   "mod_msgs": [
-    [
-     208061542,
-     155
-    ]
-   ],
+   "mod_msgs": [],
    "mod_sent_at": "2026-11-19T18:00:39Z",
    "platform": "yt",
    "published_at": "2026-11-19T14:51:34Z",
    "source": "search",
-   "status": "pending",
+   "status": "rejected",
    "thumb_hash": "2d6d4d1662f1d80f",
    "title": "GTA 6 Is a $2 BILLION Game… WHAT IS THIS GLITCH?! 💀",
    "url": "https://www.youtube.com/shorts/1_i8A4cBGGc",
@@ -1139,7 +1136,7 @@
    "status": "new",
    "title": "GTA 5 Epic Water Ragdolls | Spider-Man Jumps / Fails ep.8 #shorts #gta6 #kids",
    "url": "https://www.youtube.com/shorts/2mfnVbJBtrM",
-   "views": 8111
+   "views": 8166
   },
   "yt:2rSSpbEf3gI": {
    "author": "VICE FOOTAGE",
@@ -1157,6 +1154,13 @@
    "title": "My first-ever GTA 6 bug experience… 💀😂 Didn't expect this to happen! Welcome to Vice City! 🎮🔥",
    "url": "https://www.youtube.com/shorts/2rSSpbEf3gI",
    "views": 1190
+  },
+  "yt:2tDf4P0HNIg": {
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "2tDf4P0HNIg",
+   "key": "yt:2tDf4P0HNIg",
+   "platform": "yt",
+   "status": "rejected"
   },
   "yt:2wDsC1dDpic": {
    "found_at": "2026-11-19T10:58:52Z",
@@ -1181,6 +1185,23 @@
    "title": "First GTA 6 Glitch Already?! 💀🚤 #gta6 #shorts,",
    "url": "https://www.youtube.com/shorts/35SoQwXEB84",
    "views": 5
+  },
+  "yt:36NPPty9iMo": {
+   "author": "dav1n",
+   "channel_id": "UCDCDNQzwvX1We3McHuWJeSg",
+   "comments": 0,
+   "duration": 33,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "36NPPty9iMo",
+   "key": "yt:36NPPty9iMo",
+   "likes": 22,
+   "platform": "yt",
+   "published_at": "2026-11-18T12:21:05Z",
+   "source": "search",
+   "status": "new",
+   "title": "i guess im the gta 6 pioneer? 😭 #gta6 #gta #fails #funny #fyp",
+   "url": "https://www.youtube.com/shorts/36NPPty9iMo",
+   "views": 1637
   },
   "yt:3740eZRlFaM": {
    "author": "ClipStar ⭐",
@@ -1392,7 +1413,7 @@
    "status": "new",
    "title": "A GTA 6 NPC Spit on Kai Cenat… Big Mistake 💀 #kaicenat #gaming",
    "url": "https://www.youtube.com/shorts/3xi2p3uwARo",
-   "views": 434
+   "views": 439
   },
   "yt:4BOPiO9wFYI": {
    "found_at": "2026-11-19T17:09:34Z",
@@ -1416,7 +1437,7 @@
    "status": "new",
    "title": "GTA 6 Glitch Compilation 💀💥",
    "url": "https://www.youtube.com/shorts/4BdX8I3R2xY",
-   "views": 937
+   "views": 938
   },
   "yt:4GdKSj_9__M": {
    "found_at": "2026-11-19T10:58:52Z",
@@ -1440,7 +1461,7 @@
    "status": "new",
    "title": "Truck glitch GTA 6 😂",
    "url": "https://www.youtube.com/shorts/4Kf-LLbGfuU",
-   "views": 532
+   "views": 533
   },
   "yt:4Op_GUu0obw": {
    "author": "Primetime",
@@ -1526,6 +1547,23 @@
    "url": "https://www.youtube.com/shorts/4_mXcjCBm9Q",
    "views": 501
   },
+  "yt:4azpa9voOMY": {
+   "author": "Life inside GTA",
+   "channel_id": "UCeY5RYAqt2s09hJxMlQ_9BQ",
+   "comments": 1,
+   "duration": 61,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "4azpa9voOMY",
+   "key": "yt:4azpa9voOMY",
+   "likes": 39,
+   "platform": "yt",
+   "published_at": "2026-11-19T15:00:21Z",
+   "source": "search",
+   "status": "new",
+   "title": "GTA 6 GLITCH IN JUST 24 HOURS! 🔥 | Insane GTA 6 Bug!#gta6 #gta6glitch#shorts",
+   "url": "https://www.youtube.com/shorts/4azpa9voOMY",
+   "views": 884
+  },
   "yt:4b0C6iv8898": {
    "author": "ilyk",
    "channel_id": "UCE4py01OTTpUjoPOg7pqfbQ",
@@ -1568,6 +1606,23 @@
    "title": "GTA 5 Insane Pier Stunt 🏍️ GTA 6 Needs This #gta5 #shorts #gta6",
    "url": "https://www.youtube.com/shorts/4euHYT0pX38",
    "views": 1443
+  },
+  "yt:4evF2ib6u0U": {
+   "author": "GTA 6 Funny Moments",
+   "channel_id": "UCFrh54yC_hhZJ30XGba-XRA",
+   "comments": 0,
+   "duration": 83,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "4evF2ib6u0U",
+   "key": "yt:4evF2ib6u0U",
+   "likes": 25,
+   "platform": "yt",
+   "published_at": "2026-11-19T05:41:58Z",
+   "source": "search",
+   "status": "new",
+   "title": "GTA 6 Funny Moments & Epic Fails #2 #gta6 #gta6funnymoments #gtashorts",
+   "url": "https://www.youtube.com/shorts/4evF2ib6u0U",
+   "views": 1273
   },
   "yt:4yRA1QffI7I": {
    "author": "OLDEN_ERA ",
@@ -1676,7 +1731,32 @@
    "status": "new",
    "title": "GTA 5 Thug Life Stunt Before GTA 6😭✌️ #shorts #gta5 #gtastunts #fyp",
    "url": "https://www.youtube.com/shorts/5I6v_IphXqc",
-   "views": 3518
+   "views": 3528
+  },
+  "yt:5RVz58HlHbI": {
+   "author": "La Mejor Clase",
+   "channel_id": "UCOOicVO9YismVTmluvHqLxw",
+   "comments": 2,
+   "duration": 19,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "5RVz58HlHbI",
+   "key": "yt:5RVz58HlHbI",
+   "likes": 84,
+   "mod_msgs": [
+    [
+     208061542,
+     161
+    ]
+   ],
+   "mod_sent_at": "2026-11-19T18:10:39Z",
+   "platform": "yt",
+   "published_at": "2026-11-19T12:19:58Z",
+   "source": "search",
+   "status": "pending",
+   "thumb_hash": "f93c3e730c51078a",
+   "title": "Mi PRIMER BUG en GTA 6😨​",
+   "url": "https://www.youtube.com/shorts/5RVz58HlHbI",
+   "views": 4026
   },
   "yt:5_LdbBsnwek": {
    "author": "DrUnafraid Clips",
@@ -1800,12 +1880,19 @@
    "status": "new",
    "title": "GTA 6 NPC Filled His Truck Bed With Gas… It Went Exactly How You Think #Shorts",
    "url": "https://www.youtube.com/shorts/6aHOCNIx_7c",
-   "views": 1236
+   "views": 1278
   },
   "yt:6cThRMl9uVs": {
    "found_at": "2026-11-19T10:58:52Z",
    "id": "6cThRMl9uVs",
    "key": "yt:6cThRMl9uVs",
+   "platform": "yt",
+   "status": "rejected"
+  },
+  "yt:6neyPd03Rbs": {
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "6neyPd03Rbs",
+   "key": "yt:6neyPd03Rbs",
    "platform": "yt",
    "status": "rejected"
   },
@@ -1831,7 +1918,7 @@
    "status": "new",
    "title": "Chiblee's first GTA 6 police chase: on foot, two stars, then she spots a jet ski",
    "url": "https://www.youtube.com/shorts/6oxnNT3STLc",
-   "views": 3108
+   "views": 3172
   },
   "yt:6s5TUOgVvnw": {
    "author": "RBS",
@@ -1883,7 +1970,7 @@
    "found_at": "2026-11-19T17:40:48Z",
    "id": "72whkDmtJUw",
    "key": "yt:72whkDmtJUw",
-   "likes": 61,
+   "likes": 64,
    "platform": "yt",
    "published_at": "2026-11-19T16:42:15Z",
    "source": "search",
@@ -1938,7 +2025,7 @@
    "status": "new",
    "title": "Arguing with NPCs in GTA 6 #gta6 #gamingshorts",
    "url": "https://www.youtube.com/shorts/7H8TjhHg7U0",
-   "views": 1159
+   "views": 1201
   },
   "yt:7HoAjmqMePk": {
    "author": "Crazy car sim",
@@ -1991,6 +2078,13 @@
    "url": "https://www.youtube.com/shorts/7Ze8OHK6LP0",
    "views": 1
   },
+  "yt:7fX0YB6RtG4": {
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "7fX0YB6RtG4",
+   "key": "yt:7fX0YB6RtG4",
+   "platform": "yt",
+   "status": "rejected"
+  },
   "yt:7hfNH6lq-BA": {
    "author": "Wald0Gaming",
    "channel_id": "UCvgTnxmKoDxXwISVK831i4g",
@@ -2023,7 +2117,7 @@
    "status": "new",
    "title": "This GTA 6 NPC Picked a Fight With KreekCraft 💀",
    "url": "https://www.youtube.com/shorts/7nHk-Z0uN0Q",
-   "views": 1098
+   "views": 1099
   },
   "yt:7pgW7psKI50": {
    "author": "Aura Machine",
@@ -2126,7 +2220,7 @@
    "status": "new",
    "title": "Gana dinero de esta forma en GTA VI 🤑 #dinero #clip #coches #miguez01 #gta6",
    "url": "https://www.youtube.com/shorts/8GZ595fzVM0",
-   "views": 1433
+   "views": 1405
   },
   "yt:8Iri_Pp9j1s": {
    "found_at": "2026-11-19T17:40:48Z",
@@ -2231,7 +2325,7 @@
    "status": "new",
    "title": "first GTA 6 police chase 😭 #gta  #gta6 #gaming",
    "url": "https://www.youtube.com/shorts/8zz2vl7S7yI",
-   "views": 1335
+   "views": 1331
   },
   "yt:90nAx5T7V_M": {
    "author": "Tufu Bhai",
@@ -2241,14 +2335,14 @@
    "found_at": "2026-11-19T12:09:21Z",
    "id": "90nAx5T7V_M",
    "key": "yt:90nAx5T7V_M",
-   "likes": 12,
+   "likes": 11,
    "platform": "yt",
    "published_at": "2026-11-19T07:41:29Z",
    "source": "search",
    "status": "new",
    "title": "GTA 6 NPC Drivers Smart 🤷‍♂️📈|Details #gta6 #gtavi #gta6game #carryminati",
    "url": "https://www.youtube.com/shorts/90nAx5T7V_M",
-   "views": 378
+   "views": 388
   },
   "yt:9BrWMdMG5LY": {
    "author": "GTA 6 Chaos",
@@ -2322,7 +2416,7 @@
    "status": "new",
    "title": "GTA 6 NPC’S ARE SO ANGRY #shorts  #viral #GTA6 #gta",
    "url": "https://www.youtube.com/shorts/9WQK-g6DPwM",
-   "views": 137
+   "views": 138
   },
   "yt:9dPRJVjtscQ": {
    "found_at": "2026-11-19T11:32:49Z",
@@ -2363,7 +2457,7 @@
    "found_at": "2026-11-19T14:10:39Z",
    "id": "9nOqlfzWLqY",
    "key": "yt:9nOqlfzWLqY",
-   "likes": 12,
+   "likes": 10,
    "platform": "yt",
    "published_at": "2026-11-19T10:54:16Z",
    "source": "search",
@@ -2397,6 +2491,23 @@
    "tracked_at": "2026-11-19T17:40:48Z",
    "url": "https://www.youtube.com/shorts/9os70FfRU3U",
    "views": 592189
+  },
+  "yt:9oxxVLY9ahM": {
+   "author": "CrazyX FF",
+   "channel_id": "UC-HcOnvP7SjparSsnUVzhUw",
+   "comments": 0,
+   "duration": 29,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "9oxxVLY9ahM",
+   "key": "yt:9oxxVLY9ahM",
+   "likes": 17,
+   "platform": "yt",
+   "published_at": "2026-11-19T12:01:08Z",
+   "source": "search",
+   "status": "new",
+   "title": "gta 6 bugs and glitches #gtavi #gta6",
+   "url": "https://www.youtube.com/shorts/9oxxVLY9ahM",
+   "views": 1378
   },
   "yt:9zA1vApfFWg": {
    "author": "HEY TRAXX",
@@ -2447,7 +2558,7 @@
    "status": "new",
    "title": "GTA 6 glitches found #gta6 #gtavi #gaming #gameplay",
    "url": "https://www.youtube.com/shorts/AB4vk4rmiEA",
-   "views": 498
+   "views": 506
   },
   "yt:AMb1l9VIGW0": {
    "author": "NeeGhost Gaming",
@@ -2490,7 +2601,7 @@
    "status": "new",
    "title": "IShowSpeed GTA 6 Funniest Moments!",
    "url": "https://www.youtube.com/shorts/ARC7eHCJJv8",
-   "views": 216
+   "views": 247
   },
   "yt:ARpDDrtdmyI": {
    "author": "YEAHMAP - GTA 6",
@@ -2657,7 +2768,7 @@
    "status": "new",
    "title": "NPC klaut einfach das POLIZEIAUTO in GTA 6 😂",
    "url": "https://www.youtube.com/shorts/B-gcyzfK5Gw",
-   "views": 1349
+   "views": 1350
   },
   "yt:BAyumdh3hpM": {
    "author": "swayer",
@@ -2904,7 +3015,7 @@
    "status": "new",
    "title": "13 years for this GTA 6 glitch 🤣 #gta6 #glitch",
    "url": "https://www.youtube.com/shorts/CKkZ4yyaYRs",
-   "views": 1308
+   "views": 1304
   },
   "yt:CPbfEt4YbfM": {
    "author": "Just money dawg",
@@ -2948,7 +3059,7 @@
    "status": "new",
    "title": "GTA Vice City insane bike stunt . .. #gta #gtavicecity #gta5 #gta6 #rockstargames",
    "url": "https://www.youtube.com/shorts/CPg-FNjI1eU",
-   "views": 1388
+   "views": 1385
   },
   "yt:C_KGkbrmWnM": {
    "found_at": "2026-11-19T17:40:48Z",
@@ -2987,6 +3098,23 @@
    "key": "yt:CnB0BUETxo4",
    "platform": "yt",
    "status": "rejected"
+  },
+  "yt:CySWxz_HCpQ": {
+   "author": "GTA 6 CRAZY SHORTS & FACTS",
+   "channel_id": "UCTV025GDgkqaao3mDx-IdUA",
+   "comments": 0,
+   "duration": 28,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "CySWxz_HCpQ",
+   "key": "yt:CySWxz_HCpQ",
+   "likes": 22,
+   "platform": "yt",
+   "published_at": "2026-11-19T16:35:37Z",
+   "source": "search",
+   "status": "new",
+   "title": "#gta6 #gta #glitch #crazyshorts",
+   "url": "https://www.youtube.com/shorts/CySWxz_HCpQ",
+   "views": 849
   },
   "yt:Cy_wFxcxiOQ": {
    "author": "6StarVice",
@@ -3098,7 +3226,7 @@
    "status": "new",
    "title": "N3on tried to escape 6 stars police chase in GTA 6 😭👀 #gta6 #gta #lucia #gtavi #xqc",
    "url": "https://www.youtube.com/shorts/DN_dD6HjfWE",
-   "views": 1197
+   "views": 1194
   },
   "yt:DSgn3BWtQA8": {
    "found_at": "2026-11-19T17:09:34Z",
@@ -3122,7 +3250,7 @@
    "status": "new",
    "title": "#gta6 #glitch #bug",
    "url": "https://www.youtube.com/shorts/DSiXBG9WS5I",
-   "views": 1280
+   "views": 1288
   },
   "yt:DU6Y9qY90KY": {
    "author": "VertyGoose",
@@ -3272,7 +3400,7 @@
    "status": "new",
    "title": "GTA VI Walkthrough - Live Steam Clip - P1 L1 C3",
    "url": "https://www.youtube.com/shorts/Do9cnBp6I48",
-   "views": 785
+   "views": 786
   },
   "yt:DpMzBx6CfB0": {
    "found_at": "2026-11-19T12:09:21Z",
@@ -3296,7 +3424,7 @@
    "status": "new",
    "title": "iShowSpeed Counts Down to GTA 6! #gta6 #funnymoments #gaming",
    "url": "https://www.youtube.com/shorts/DxPF5GicEOM",
-   "views": 172
+   "views": 176
   },
   "yt:E0UxxhgSXhU": {
    "found_at": "2026-11-19T13:40:41Z",
@@ -3364,7 +3492,7 @@
    "status": "new",
    "title": "Would you livestream your GTA 6 police chase? 😂",
    "url": "https://www.youtube.com/shorts/E3tVG1kYUPk",
-   "views": 1963
+   "views": 1962
   },
   "yt:E7yK7dYCYQs": {
    "found_at": "2026-11-19T12:41:09Z",
@@ -3412,7 +3540,7 @@
    "status": "new",
    "title": "#welovegames на #Twitch | lol kek gta6 mission failed",
    "url": "https://www.youtube.com/shorts/Ef0IbV4x_p8",
-   "views": 1678
+   "views": 1681
   },
   "yt:EzM8jn6tk1k": {
    "author": "GtaClipFun ",
@@ -3429,7 +3557,7 @@
    "status": "new",
    "title": "GTA 5 Cest Ciao !! votre endroit preferer ? commenter la salle pour le stunt ! #gta5 #gta #gta6",
    "url": "https://www.youtube.com/shorts/EzM8jn6tk1k",
-   "views": 1109
+   "views": 1110
   },
   "yt:F11xhtdKjxc": {
    "author": "GTA VI CLIPPING",
@@ -3602,7 +3730,7 @@
    "status": "new",
    "title": "Brett finding out if he can outlift Jason in GTA 6 💀 #gta6 #gta #gaming #clip #brett",
    "url": "https://www.youtube.com/shorts/GDWGK7vG7xQ",
-   "views": 978
+   "views": 984
   },
   "yt:GI_0xY3S7r4": {
    "author": "Ajinkya Gamer ",
@@ -3636,14 +3764,14 @@
    "found_at": "2026-11-19T11:32:49Z",
    "id": "GRuiGew-Czs",
    "key": "yt:GRuiGew-Czs",
-   "likes": 9,
+   "likes": 10,
    "platform": "yt",
    "published_at": "2026-11-19T09:59:57Z",
    "source": "search",
    "status": "new",
    "title": "Se oli mahtavaa #gta6 #einäin #glitch",
    "url": "https://www.youtube.com/shorts/GRuiGew-Czs",
-   "views": 1220
+   "views": 1150
   },
   "yt:GVfdR0y4NOY": {
    "author": "Loading Vice City",
@@ -3687,14 +3815,14 @@
    "found_at": "2026-11-19T10:58:52Z",
    "id": "GX19-tNgxqg",
    "key": "yt:GX19-tNgxqg",
-   "likes": 26,
+   "likes": 27,
    "platform": "yt",
    "published_at": "2026-11-19T06:39:39Z",
    "source": "search",
    "status": "new",
    "title": "Soy el mejor aviador de GTA 6 🤑 #GTA #gta6 #streamer #clips #parati",
    "url": "https://www.youtube.com/shorts/GX19-tNgxqg",
-   "views": 1223
+   "views": 1228
   },
   "yt:GX8OdEu5-s0": {
    "author": "DronaX",
@@ -3730,14 +3858,14 @@
    "found_at": "2026-11-19T17:40:48Z",
    "id": "GY_SlYefdqg",
    "key": "yt:GY_SlYefdqg",
-   "likes": 26,
+   "likes": 28,
    "platform": "yt",
    "published_at": "2026-11-19T16:15:39Z",
    "source": "search",
    "status": "new",
    "title": "La primera rampa de DaniRep #clip  #gta6 #twitch #Gaming #rockstarsgames   #gtavi",
    "url": "https://www.youtube.com/shorts/GY_SlYefdqg",
-   "views": 771
+   "views": 807
   },
   "yt:Gii_miiHPos": {
    "author": "Fork shiba inu",
@@ -3772,6 +3900,23 @@
    "title": "POV: Mythpat Funny Moments 😂 | GTA 6 Funny moments 😂 #shorts",
    "url": "https://www.youtube.com/shorts/GoKWh4y2xVc",
    "views": 785
+  },
+  "yt:GoLJ0CXMsnc": {
+   "author": "Josh Tracey",
+   "channel_id": "UCRVBVB-VyhLY5hLTDgjJX6A",
+   "comments": 6,
+   "duration": 16,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "GoLJ0CXMsnc",
+   "key": "yt:GoLJ0CXMsnc",
+   "likes": 36,
+   "platform": "yt",
+   "published_at": "2026-11-19T14:28:23Z",
+   "source": "search",
+   "status": "new",
+   "title": "There’s a few bugs 😅 #gta #gta6 #gtavi #gaming #rockstar #glitch",
+   "url": "https://www.youtube.com/shorts/GoLJ0CXMsnc",
+   "views": 821
   },
   "yt:H3lqOmOPfPk": {
    "author": "GTA 6 CLIPS ",
@@ -3840,14 +3985,14 @@
    "found_at": "2026-11-19T12:09:21Z",
    "id": "HGpOUOJctKc",
    "key": "yt:HGpOUOJctKc",
-   "likes": 19,
+   "likes": 20,
    "platform": "yt",
    "published_at": "2026-11-19T10:12:25Z",
    "source": "search",
    "status": "new",
    "title": "GTA 6 NPC's 🙀💥|UNEXPECTED #gta6 #gta6game #gameplay #shorts #mythpat",
    "url": "https://www.youtube.com/shorts/HGpOUOJctKc",
-   "views": 1215
+   "views": 1164
   },
   "yt:HIIWh7PipoE": {
    "author": "Rise Read",
@@ -3898,14 +4043,14 @@
    "found_at": "2026-11-19T17:09:34Z",
    "id": "HNJhwoPWvyE",
    "key": "yt:HNJhwoPWvyE",
-   "likes": 11,
+   "likes": 12,
    "platform": "yt",
    "published_at": "2026-11-19T16:14:10Z",
    "source": "search",
    "status": "new",
    "title": "My gta 6 funny moment #gta6 #funny",
    "url": "https://www.youtube.com/shorts/HNJhwoPWvyE",
-   "views": 598
+   "views": 604
   },
   "yt:HR_sBxI2LLw": {
    "author": "MeSucksDontBully",
@@ -3975,7 +4120,7 @@
    "status": "new",
    "title": "IShowSpeed Found the CRAZIEST GTA 6 Glitch Already?! 💀✈️ #shorts #gta6",
    "url": "https://www.youtube.com/shorts/HUxzneneMJs",
-   "views": 533
+   "views": 534
   },
   "yt:Hd4oQWsi18E": {
    "found_at": "2026-11-19T14:40:44Z",
@@ -4026,7 +4171,7 @@
    "status": "new",
    "title": "Illo Juan borra GTA VI 🤯 #clips #funny #illojuan #gtavi #gta6 #error #reacción #fail #risas #directo",
    "url": "https://www.youtube.com/shorts/HuxJ-D1X5-k",
-   "views": 892
+   "views": 929
   },
   "yt:Hw_CAqwCtk8": {
    "author": "pRac",
@@ -4321,7 +4466,7 @@
    "found_at": "2026-11-19T14:40:44Z",
    "id": "J_UCinA4lHA",
    "key": "yt:J_UCinA4lHA",
-   "likes": 130,
+   "likes": 131,
    "platform": "yt",
    "published_at": "2026-11-18T13:11:24Z",
    "source": "search",
@@ -4345,7 +4490,7 @@
    "status": "new",
    "title": "GTA 6 NPC CONVERSATIONS😭😭😭🥀 #gta #gta6 #gta5 #gtaonline",
    "url": "https://www.youtube.com/shorts/JiDTxFdn_4I",
-   "views": 619
+   "views": 618
   },
   "yt:JkCVpsfRd08": {
    "author": "BadHabits Wins",
@@ -4516,7 +4661,7 @@
    "status": "new",
    "title": "This GTA 6 NPC Changed His Mind FAST 😂 | Kai Cenat #Shorts",
    "url": "https://www.youtube.com/shorts/LGevzG8MJcE",
-   "views": 201
+   "views": 203
   },
   "yt:LJGkRWOrhn0": {
    "author": "Gan gaminz",
@@ -4550,7 +4695,7 @@
    "status": "new",
    "title": "why did he do that 😭 #gta6 #gta #fails #funny #fyp",
    "url": "https://www.youtube.com/shorts/LQEpfgwx38Q",
-   "views": 3650
+   "views": 3663
   },
   "yt:LVFpFeHs2jY": {
    "found_at": "2026-11-19T17:40:48Z",
@@ -4591,7 +4736,7 @@
    "status": "new",
    "title": "GTA 6 CRASH PHYSICS IS INSANE! #GTA6 #gta #CRASH #PHYSICS #FAIL #shorts #viral",
    "url": "https://www.youtube.com/shorts/LbSD59X7O38",
-   "views": 3006
+   "views": 3024
   },
   "yt:LfEoDzdPzP0": {
    "author": "Brett",
@@ -4625,7 +4770,7 @@
    "status": "new",
    "title": "gta 6 glitch 😱 #shorts",
    "url": "https://www.youtube.com/shorts/LiHY1ZJ99C4",
-   "views": 1297
+   "views": 1288
   },
   "yt:LlhhUEiE-D0": {
    "found_at": "2026-11-19T12:41:09Z",
@@ -4657,6 +4802,23 @@
    "title": "GTA 6 NPC does a Peanut Impression",
    "url": "https://www.youtube.com/shorts/Lvz_jfGSmuw",
    "views": 1232
+  },
+  "yt:LwC4BYGPHP4": {
+   "author": "YazPlay",
+   "channel_id": "UCnTd9cptgXf4ttRLcu4ULIg",
+   "comments": 0,
+   "duration": 16,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "LwC4BYGPHP4",
+   "key": "yt:LwC4BYGPHP4",
+   "likes": 0,
+   "platform": "yt",
+   "published_at": "2026-11-19T16:42:36Z",
+   "source": "search",
+   "status": "new",
+   "title": "GTA 6 Also has glitch #gta6 #gaming #gtavi",
+   "url": "https://www.youtube.com/shorts/LwC4BYGPHP4",
+   "views": 940
   },
   "yt:M09pxnctnDE": {
    "found_at": "2026-11-19T17:09:34Z",
@@ -4847,7 +5009,7 @@
    "status": "new",
    "title": "Tomo Found the QUIETEST Nightclub in GTA 6 💀😭 #gtavi #funnymoments",
    "url": "https://www.youtube.com/shorts/N1DwwBdwAGw",
-   "views": 1443
+   "views": 1444
   },
   "yt:N1thIknvJos": {
    "author": "Ceaqul",
@@ -4864,7 +5026,7 @@
    "status": "new",
    "title": "BEST GTA 6 MOMENTS PART 2 #gta6 #ceaqul #streamers #funny #clips",
    "url": "https://www.youtube.com/shorts/N1thIknvJos",
-   "views": 1284
+   "views": 1289
   },
   "yt:N2mkXAUUKz8": {
    "found_at": "2026-11-19T10:58:52Z",
@@ -5039,6 +5201,31 @@
    "url": "https://www.youtube.com/shorts/OB0XxAMU2Mk",
    "views": 1376
   },
+  "yt:OC811g0KUXU": {
+   "author": "OuTaN",
+   "channel_id": "UCJll24v0W0Cd3-_kfY7X9UA",
+   "comments": 1,
+   "duration": 20,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "OC811g0KUXU",
+   "key": "yt:OC811g0KUXU",
+   "likes": 193,
+   "mod_msgs": [
+    [
+     208061542,
+     162
+    ]
+   ],
+   "mod_sent_at": "2026-11-19T18:10:39Z",
+   "platform": "yt",
+   "published_at": "2026-11-19T09:51:31Z",
+   "source": "search",
+   "status": "pending",
+   "thumb_hash": "dfe613db270f1fbf",
+   "title": "force à ceux à qui c'est arrivé 🫪 #gta #gta6 #gtaonline #rockstar #fail",
+   "url": "https://www.youtube.com/shorts/OC811g0KUXU",
+   "views": 3355
+  },
   "yt:OCH_M_QMcCk": {
    "found_at": "2026-11-19T10:58:52Z",
    "id": "OCH_M_QMcCk",
@@ -5070,19 +5257,19 @@
   "yt:OOucVj5iMr8": {
    "author": "AX4T",
    "channel_id": "UCS6aTIx2Jzb0zu6RpOn-XVQ",
-   "comments": 3,
+   "comments": 2,
    "duration": 58,
    "found_at": "2026-11-19T10:46:36Z",
    "id": "OOucVj5iMr8",
    "key": "yt:OOucVj5iMr8",
-   "likes": 33,
+   "likes": 32,
    "platform": "yt",
    "published_at": "2026-11-19T09:15:51Z",
    "source": "search",
    "status": "new",
    "title": "GTA 6 Physics Are Getting CRAZY 😭✈️ #gta6 #xqc #gtavi",
    "url": "https://www.youtube.com/shorts/OOucVj5iMr8",
-   "views": 1143
+   "views": 1096
   },
   "yt:OVHZCWljwaM": {
    "author": "PC PLAYER",
@@ -5099,7 +5286,7 @@
    "status": "new",
    "title": "CarryMinati GTA 6 Funny Moments 😂 | CarryisLive Highlights",
    "url": "https://www.youtube.com/shorts/OVHZCWljwaM",
-   "views": 36
+   "views": 33
   },
   "yt:Ob3qFY8az8E": {
    "author": "GAME ZONE VI",
@@ -5216,7 +5403,7 @@
    "status": "new",
    "title": "These Moments Are Memories 😂 #gaming #gtav #gta5 #gta6 #grandtheftauto #rockstargames #funnymoments",
    "url": "https://www.youtube.com/shorts/P68MaJT0WQw",
-   "views": 196
+   "views": 194
   },
   "yt:P86ncfZhXrg": {
    "author": "SIDDU*GAMER 21",
@@ -5259,7 +5446,7 @@
    "status": "new",
    "title": "Qui peux nous dire ce que c’est #clips #france #gta #gtavi #tending",
    "url": "https://www.youtube.com/shorts/P9gLvr6fZss",
-   "views": 1138
+   "views": 1162
   },
   "yt:PB4HpUQZFmU": {
    "author": "$ide Hustle Gaming",
@@ -5276,7 +5463,7 @@
    "status": "new",
    "title": "GTA 6 NPC Behavior Just Got Way More Chaotic",
    "url": "https://www.youtube.com/shorts/PB4HpUQZFmU",
-   "views": 1069
+   "views": 1053
   },
   "yt:PG1n7XPcCzc": {
    "author": "Icelegacygaming",
@@ -5293,7 +5480,7 @@
    "status": "new",
    "title": "That Police Car Went SIDEWAYS 💀 | GTA 6",
    "url": "https://www.youtube.com/shorts/PG1n7XPcCzc",
-   "views": 2838
+   "views": 2813
   },
   "yt:PQ0N9rPUe4U": {
    "author": "Insane_kid",
@@ -5353,7 +5540,7 @@
    "status": "new",
    "title": "13 лет ждал GTA 6… и пошёл к аллигатору 😂 #GTA6 #ГТА6 #Shorts #13летждали  #приколы #GTAVI  #игры",
    "url": "https://www.youtube.com/shorts/PYdQ4LdS6eE",
-   "views": 2
+   "views": 4
   },
   "yt:PYnAr6cVk3I": {
    "author": "Franklin Origins",
@@ -5387,7 +5574,7 @@
    "status": "new",
    "title": "GTA 6 NPC roasts xQc right back 😭 #shorts",
    "url": "https://www.youtube.com/shorts/PckH9Tnai2o",
-   "views": 1103
+   "views": 1107
   },
   "yt:PeyOuflBoGs": {
    "author": "MacAssault",
@@ -5471,7 +5658,7 @@
    "status": "new",
    "title": "GTA VI clips PLANE #viral",
    "url": "https://www.youtube.com/shorts/Pk-sZmd_JEo",
-   "views": 1033
+   "views": 1014
   },
   "yt:PpgPJltD_as": {
    "found_at": "2026-11-19T17:09:34Z",
@@ -5495,7 +5682,7 @@
    "status": "new",
    "title": "xQc's First Police Chase in GTA 6 #grandtheftauto6 #gta6",
    "url": "https://www.youtube.com/shorts/PtdqcEjfrvA",
-   "views": 1350
+   "views": 1346
   },
   "yt:PvXyVNGGSbU": {
    "author": "FrameGrid",
@@ -5539,6 +5726,23 @@
    "tracked_at": "2026-11-19T17:40:48Z",
    "url": "https://www.youtube.com/shorts/PzOV4hjQhoY",
    "views": 3321
+  },
+  "yt:Q2i2w0QA0zk": {
+   "author": "nsxedition",
+   "channel_id": "UC1r9aJWoNhWAX0Qum0_pfrw",
+   "comments": 0,
+   "duration": 24,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "Q2i2w0QA0zk",
+   "key": "yt:Q2i2w0QA0zk",
+   "likes": 0,
+   "platform": "yt",
+   "published_at": "2026-11-19T17:33:18Z",
+   "source": "search",
+   "status": "new",
+   "title": "Bro found a glitch in GTA 6 🤯 #gta6 #shortsfeed #glitch",
+   "url": "https://www.youtube.com/shorts/Q2i2w0QA0zk",
+   "views": 255
   },
   "yt:Q4214H9WNEY": {
    "found_at": "2026-11-19T12:41:09Z",
@@ -5612,7 +5816,7 @@
    "status": "new",
    "title": "GTA 6 C'est Réaliste #gta6 #gta6clips #gaming #gamer #rockstargames #gtavi #clip #twitch #shorts",
    "url": "https://www.youtube.com/shorts/Q_42rQWECzo",
-   "views": 640
+   "views": 659
   },
   "yt:QdiSov23J9I": {
    "author": "Shorts from Brazuka",
@@ -5726,7 +5930,7 @@
    "status": "new",
    "title": "mas luth tipikal orang indo banget #luthfihalimawan #fyp #clips #gtavi #clip #o2h",
    "url": "https://www.youtube.com/shorts/QrZ_RDgHLMk",
-   "views": 1309
+   "views": 1250
   },
   "yt:Qv-icODImnI": {
    "author": "Redgate Gaming",
@@ -5882,7 +6086,7 @@
    "status": "new",
    "title": "DAGGER ATTACK Knockbacks Ragdoll Compilation & Epic Fails #21 #gta6 #gta5",
    "url": "https://www.youtube.com/shorts/RClsMN42qVw",
-   "views": 3158
+   "views": 3036
   },
   "yt:RJbk5KohlEw": {
    "found_at": "2026-11-19T17:40:48Z",
@@ -5954,7 +6158,24 @@
    "status": "new",
    "title": "LaSalle tente déjà son premier stunt sur Gta 6 #gta #gta6",
    "url": "https://www.youtube.com/shorts/RcgUFWg_SEk",
-   "views": 1975
+   "views": 1980
+  },
+  "yt:ReIu0myo5JQ": {
+   "author": "BlueTick Reloaded",
+   "channel_id": "UC62mGRn9sICeUBjAfSVcBhw",
+   "comments": 2,
+   "duration": 15,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "ReIu0myo5JQ",
+   "key": "yt:ReIu0myo5JQ",
+   "likes": 20,
+   "platform": "yt",
+   "published_at": "2026-11-19T17:16:02Z",
+   "source": "search",
+   "status": "new",
+   "title": "THIS GTA 6 GLITCH IS INSANE  #gta6 #gta6graphics #gta6shorts",
+   "url": "https://www.youtube.com/shorts/ReIu0myo5JQ",
+   "views": 239
   },
   "yt:Rg1dmDz6fe8": {
    "found_at": "2026-11-19T10:58:52Z",
@@ -6050,7 +6271,7 @@
    "status": "new",
    "title": "GTA 6 eskaliert sofort 💀 Wasted, Motorrad-Fail & Kampfjets #GTA6 #GTA6Deutsch #Shorts #gta6 #gaming",
    "url": "https://www.youtube.com/shorts/S_9fvSP7RIY",
-   "views": 1894
+   "views": 1895
   },
   "yt:Socut9sLGe8": {
    "author": "Schmerle",
@@ -6067,7 +6288,7 @@
    "status": "new",
    "title": "KLIMAKLEBER 2.0 in GTA 6! 😭 #gta6 #fyp #viral #clip",
    "url": "https://www.youtube.com/shorts/Socut9sLGe8",
-   "views": 814
+   "views": 824
   },
   "yt:Sr3VvUndKrY": {
    "author": "Bold Bearded Raccoon",
@@ -6084,7 +6305,7 @@
    "status": "new",
    "title": "I BROKE the game by skipping too much! 💀 #gta6 #glitch #shorts",
    "url": "https://www.youtube.com/shorts/Sr3VvUndKrY",
-   "views": 892
+   "views": 897
   },
   "yt:SxK6UGXDboE": {
    "author": "EggzBennie",
@@ -6103,6 +6324,23 @@
    "url": "https://www.youtube.com/shorts/SxK6UGXDboE",
    "views": 21185
   },
+  "yt:T4VEBoqnb1M": {
+   "author": "AnthonyHeyXD",
+   "channel_id": "UCPrn4gvN5Fk9TnotznE0sWQ",
+   "comments": 0,
+   "duration": 23,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "T4VEBoqnb1M",
+   "key": "yt:T4VEBoqnb1M",
+   "likes": 28,
+   "platform": "yt",
+   "published_at": "2026-11-19T03:18:50Z",
+   "source": "search",
+   "status": "new",
+   "title": "LA PRIMERA PERSECUCIÓN DE THEGREFG EN GTA 6 😱🔥 #gta6 #thegrefg #fail",
+   "url": "https://www.youtube.com/shorts/T4VEBoqnb1M",
+   "views": 1976
+  },
   "yt:T9R9_3hO8bA": {
    "found_at": "2026-11-19T11:32:49Z",
    "id": "T9R9_3hO8bA",
@@ -6118,14 +6356,14 @@
    "found_at": "2026-11-19T10:58:52Z",
    "id": "TCzeTfydUBQ",
    "key": "yt:TCzeTfydUBQ",
-   "likes": 18,
+   "likes": 20,
    "platform": "yt",
    "published_at": "2026-11-19T10:30:28Z",
    "source": "search",
    "status": "new",
    "title": "E STI CA**I, della bottiglia di GTA VI del frigo?  #clips #gaming #live",
    "url": "https://www.youtube.com/shorts/TCzeTfydUBQ",
-   "views": 1069
+   "views": 1063
   },
   "yt:TDwCHmI2iZw": {
    "author": "Fasher",
@@ -6142,7 +6380,7 @@
    "status": "new",
    "title": "GTA 6 NPCs Are TOO REAL 😭 #shorts #gta6",
    "url": "https://www.youtube.com/shorts/TDwCHmI2iZw",
-   "views": 1049
+   "views": 1044
   },
   "yt:TFmtM1kRWp4": {
    "found_at": "2026-11-19T10:46:36Z",
@@ -6190,7 +6428,7 @@
    "status": "new",
    "title": "We Drowned a GTA 6 NPC Inside His Own Car Trunk 💀",
    "url": "https://www.youtube.com/shorts/ThpaxdHR6Jw",
-   "views": 1242
+   "views": 1144
   },
   "yt:TiOJj2NG8wk": {
    "author": "GamerXPAT",
@@ -6207,7 +6445,7 @@
    "status": "new",
    "title": "GTA 6 NPCs Have Zero Patience #shorts",
    "url": "https://www.youtube.com/shorts/TiOJj2NG8wk",
-   "views": 1214
+   "views": 1213
   },
   "yt:TiRiQ6vvwK4": {
    "author": "Cloudy Gamerz",
@@ -6241,7 +6479,7 @@
    "status": "new",
    "title": "GTA 6 Glitch !!! #1 #gta6 #glitch",
    "url": "https://www.youtube.com/shorts/Tk__XLdGNaE",
-   "views": 473
+   "views": 441
   },
   "yt:TpWa67clBY0": {
    "found_at": "2026-11-19T10:46:36Z",
@@ -6265,7 +6503,14 @@
    "status": "new",
    "title": "Funny Moments 😂#gta #gtasanandreas #shortsfunny",
    "url": "https://www.youtube.com/shorts/Tr_dGtg_O8w",
-   "views": 2826
+   "views": 2817
+  },
+  "yt:TyNUaWiX55s": {
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "TyNUaWiX55s",
+   "key": "yt:TyNUaWiX55s",
+   "platform": "yt",
+   "status": "rejected"
   },
   "yt:TyrQENlvgp0": {
    "found_at": "2026-11-19T12:41:09Z",
@@ -6472,7 +6717,24 @@
    "status": "new",
    "title": "xQc Trash Talks a GTA 6 NPC and Regrets It",
    "url": "https://www.youtube.com/shorts/VQqOljg0sgs",
-   "views": 3
+   "views": 2
+  },
+  "yt:VdxVzh_9eBE": {
+   "author": "ShortGuy",
+   "channel_id": "UCa-8i8LUyd4a1-5XW3J2fQg",
+   "comments": 3,
+   "duration": 64,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "VdxVzh_9eBE",
+   "key": "yt:VdxVzh_9eBE",
+   "likes": 25,
+   "platform": "yt",
+   "published_at": "2026-11-19T15:33:06Z",
+   "source": "search",
+   "status": "new",
+   "title": "Secret spot to get SMG AND $10,000 in GTA 6!! #gta #gta6 #story #glitch #money #gaming",
+   "url": "https://www.youtube.com/shorts/VdxVzh_9eBE",
+   "views": 566
   },
   "yt:VlJybls_ioQ": {
    "author": "VANQUISHER YT",
@@ -6581,7 +6843,7 @@
    "status": "new",
    "title": "GTA 6 ABONNE TOI !🔥🐧🫵🏻👋🏻🫶🏻❤️#viral #gta6 #gaming #clip #1000souvenirs # #questcequejedevraischoisir",
    "url": "https://www.youtube.com/shorts/WGKal5CaXvc",
-   "views": 1210
+   "views": 1174
   },
   "yt:WIfy68ZGWSE": {
    "author": "CClips",
@@ -6602,6 +6864,31 @@
    "title": "NPC fährt in Trymacs rein #twitch #clips #laugh #gaming #streamer #GTAVI #GTA #trymacs #viral",
    "url": "https://www.youtube.com/shorts/WIfy68ZGWSE",
    "views": 2015
+  },
+  "yt:WKUFk4k5l5E": {
+   "author": "SujalisLive",
+   "channel_id": "UCT-85vOpnnwRu-GsxxUdMOw",
+   "comments": 19,
+   "duration": 22,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "WKUFk4k5l5E",
+   "key": "yt:WKUFk4k5l5E",
+   "likes": 171,
+   "mod_msgs": [
+    [
+     208061542,
+     160
+    ]
+   ],
+   "mod_sent_at": "2026-11-19T18:10:39Z",
+   "platform": "yt",
+   "published_at": "2026-11-19T14:43:36Z",
+   "source": "search",
+   "status": "pending",
+   "thumb_hash": "9c9c4e4dcca2c3b3",
+   "title": "Gta 6 Fail Car Crash 🤣",
+   "url": "https://www.youtube.com/shorts/WKUFk4k5l5E",
+   "views": 3684
   },
   "yt:WMH_8F_G-Ig": {
    "author": "GTA VI UNIVERSE",
@@ -6635,7 +6922,7 @@
    "status": "new",
    "title": "Je suis en Live TOUT les SOIR à 21h00 #clip #gtavi #gta6 #streamer #live",
    "url": "https://www.youtube.com/shorts/WWIpYZwCUDc",
-   "views": 2
+   "views": 1
   },
   "yt:WWTsR-jwtA4": {
    "author": "SlayVerse",
@@ -6652,7 +6939,7 @@
    "status": "new",
    "title": "GTA 6 Gameplay Clip #1🔥 #gta6 #gta #shorts",
    "url": "https://www.youtube.com/shorts/WWTsR-jwtA4",
-   "views": 99
+   "views": 84
   },
   "yt:W_ofGCW3F1c": {
    "author": "Karsh Gamer",
@@ -6817,7 +7104,7 @@
    "status": "new",
    "title": "Tomo's First Police Chase in GTA 6 🚨",
    "url": "https://www.youtube.com/shorts/X1r7x3qDo1Y",
-   "views": 1649
+   "views": 1658
   },
   "yt:X7yJvqYmkE4": {
    "author": "GameGuru Gaurav",
@@ -7024,7 +7311,7 @@
    "status": "new",
    "title": "najcięższy stunt do tej pory jaki prawie zrobiłem w  #gta5",
    "url": "https://www.youtube.com/shorts/XmIONUpIhDE",
-   "views": 1415
+   "views": 1417
   },
   "yt:XngE8pstPa0": {
    "author": "V3rtfv",
@@ -7041,7 +7328,7 @@
    "status": "new",
    "title": "\"We just SCRATCHED IT\" 💀😭 #tomovids #gta6 #driving  #funnymoments",
    "url": "https://www.youtube.com/shorts/XngE8pstPa0",
-   "views": 1239
+   "views": 853
   },
   "yt:XnkvP3Vqz1o": {
    "found_at": "2026-11-19T10:46:36Z",
@@ -7113,7 +7400,7 @@
    "status": "new",
    "title": "NPC КИНУЛ ВЕЛИК В МАШИНУ, КОТОРАЯ ЕГО СБИЛА?! 😱 GTA 6 #shorts",
    "url": "https://www.youtube.com/shorts/XzsQNHmX4OA",
-   "views": 3
+   "views": 2
   },
   "yt:YIK658VRp_8": {
    "author": "Riot Clipping | GTA 6 News, Clips & Viral Moments",
@@ -7130,7 +7417,7 @@
    "status": "new",
    "title": "3 Streamers Crashed Their FIRST EVER GTA 6 Flight 💀",
    "url": "https://www.youtube.com/shorts/YIK658VRp_8",
-   "views": 1742
+   "views": 1745
   },
   "yt:YJJOphltiVE": {
    "found_at": "2026-11-19T12:09:21Z",
@@ -7154,7 +7441,7 @@
    "status": "new",
    "title": "Kai Cenat Gets PRESSED by a GTA 6 NPC 😂",
    "url": "https://www.youtube.com/shorts/YJgEGrM-G68",
-   "views": 342
+   "views": 339
   },
   "yt:YK45HQtuyZI": {
    "author": "MAXHIP",
@@ -7172,6 +7459,23 @@
    "title": "Доплыл до края карты в GTA 6#GTA6 #GTA #Мем #Смешно #Приколы #Игры #Gaming #Shorts",
    "url": "https://www.youtube.com/shorts/YK45HQtuyZI",
    "views": 2
+  },
+  "yt:YMRYHMJzAhw": {
+   "author": "GTA HIGHS",
+   "channel_id": "UCcxoWs8aLs0PzeZWHcgdueQ",
+   "comments": 0,
+   "duration": 20,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "YMRYHMJzAhw",
+   "key": "yt:YMRYHMJzAhw",
+   "likes": 0,
+   "platform": "yt",
+   "published_at": "2026-11-19T18:00:13Z",
+   "source": "search",
+   "status": "new",
+   "title": "Glitches already in GTA 6? 13 years in the making #Shorts",
+   "url": "https://www.youtube.com/shorts/YMRYHMJzAhw",
+   "views": 144
   },
   "yt:YODIsVNgdFg": {
    "author": "Unclameddai",
@@ -7256,7 +7560,7 @@
    "status": "new",
    "title": "Gta VI Loirando So o Basico #clips #streamer #clips #shorts #gta6",
    "url": "https://www.youtube.com/shorts/YS1csNAMJ_U",
-   "views": 689
+   "views": 699
   },
   "yt:YTlq0CimgIU": {
    "author": "DILROJ PLAYS",
@@ -7324,7 +7628,7 @@
    "status": "new",
    "title": "FIRST 😱GLITCH IN GTA 6 #gta6 #glitch",
    "url": "https://www.youtube.com/shorts/YeMcyvkij_Y",
-   "views": 89
+   "views": 88
   },
   "yt:YgqsyGFy1bE": {
    "author": "Great gamer",
@@ -7418,7 +7722,7 @@
    "status": "new",
    "title": "GTA 6 NPC Are Crazy!! #gta #gta6 #gtavicecity",
    "url": "https://www.youtube.com/shorts/Z-mT5HU4WBA",
-   "views": 318
+   "views": 320
   },
   "yt:Z6ebHaqMvPs": {
    "author": "Gamer's Gazette",
@@ -7435,7 +7739,7 @@
    "status": "new",
    "title": "Gta 6 Npc’s are crazy 🤣 #gta6 #gta #gtavi #gaming",
    "url": "https://www.youtube.com/shorts/Z6ebHaqMvPs",
-   "views": 754
+   "views": 758
   },
   "yt:ZBVujUU622E": {
    "author": "Taleplix",
@@ -7569,7 +7873,7 @@
    "status": "new",
    "title": "NEVER Celebrate Too Early in GTA! 💀🏍️#gtaonline #gtaonline #gta #gta5 #gta6 #funny #gtav #gtavi",
    "url": "https://www.youtube.com/shorts/ZOUydJSKpME",
-   "views": 1163
+   "views": 1161
   },
   "yt:Zb0h0TqEi3o": {
    "author": "TheVideoReC ",
@@ -7586,7 +7890,7 @@
    "status": "new",
    "title": "GTA 6 GAMEPLAY!🔥 Stunt Cutscenes! #GTA6 #gta6gameplay",
    "url": "https://www.youtube.com/shorts/Zb0h0TqEi3o",
-   "views": 1447
+   "views": 1457
   },
   "yt:ZgE5fa7Cai8": {
    "found_at": "2026-11-19T12:41:09Z",
@@ -7660,7 +7964,7 @@
    "status": "new",
    "title": "GTA 6 NPCs Are Next Level! #gta6 #gta6npc",
    "url": "https://www.youtube.com/shorts/ZoWSZAr_I9E",
-   "views": 440
+   "views": 442
   },
   "yt:ZpRnGnM14vg": {
    "author": "Barış Can",
@@ -7700,7 +8004,7 @@
    "status": "new",
    "title": "First GTA 6 NPC interaction 🫩💔 #gta6",
    "url": "https://www.youtube.com/shorts/_0-Q-sPtg1g",
-   "views": 433
+   "views": 434
   },
   "yt:_CGHv1_85nw": {
    "author": "Faith",
@@ -7896,7 +8200,7 @@
    "status": "new",
    "title": "GTA 6 FUNNY MOMENTS PART 1 #ray  #gaming #theburntpeanut #gta6",
    "url": "https://www.youtube.com/shorts/av03bYizYX4",
-   "views": 1163
+   "views": 1162
   },
   "yt:bDs1hdXjApU": {
    "author": "Sadhu Gamer OP",
@@ -7940,7 +8244,7 @@
    "status": "new",
    "title": "GTA 6 NPC'S ARE CRAZYY  #GTA6 #KreekCraft #GrandTheftAutoVI.",
    "url": "https://www.youtube.com/shorts/bMIF9YZo5bY",
-   "views": 712
+   "views": 724
   },
   "yt:bQ0OhEBv4K8": {
    "author": "GillLive ",
@@ -8066,7 +8370,7 @@
    "status": "new",
    "title": "GTA 6 already has glitches 😭 #viral",
    "url": "https://www.youtube.com/shorts/c0o81f_SwE8",
-   "views": 1264
+   "views": 1259
   },
   "yt:c3qjhfTNgTI": {
    "author": "XYZGamer",
@@ -8229,7 +8533,7 @@
    "status": "new",
    "title": "Farolazo en toa la boca. #parati #clips #españa #gta6 #grandtheftauto #gtavi #español",
    "url": "https://www.youtube.com/shorts/cemNLrHFv9I",
-   "views": 1908
+   "views": 1912
   },
   "yt:cxsbKOd-9Y0": {
    "author": "Nogla",
@@ -8297,7 +8601,7 @@
    "status": "new",
    "title": "GTA 6 funny Moment #gta6 #gtavi #fun #funny",
    "url": "https://www.youtube.com/shorts/d4dujdoy_FI",
-   "views": 963
+   "views": 957
   },
   "yt:d52SnQgEG6U": {
    "author": "KillerKing",
@@ -8331,7 +8635,7 @@
    "status": "new",
    "title": "CRAZIEST STUNT EVER 😱 | GTA 6 Moments #Shorts #GTA",
    "url": "https://www.youtube.com/shorts/dHPSwh2fgQg",
-   "views": 1219
+   "views": 1222
   },
   "yt:dPSIC9TvtRo": {
    "author": "Vice City Vault",
@@ -8348,7 +8652,7 @@
    "status": "new",
    "title": "\"LUCIA TAKE THESE MORNING WHAT...\" #gta6 #gaming #funny #funnymoments",
    "url": "https://www.youtube.com/shorts/dPSIC9TvtRo",
-   "views": 4
+   "views": 5
   },
   "yt:dRQSQt6U6xA": {
    "author": "GUKI",
@@ -8411,14 +8715,14 @@
    "found_at": "2026-11-19T15:40:45Z",
    "id": "dacLDm2qhJc",
    "key": "yt:dacLDm2qhJc",
-   "likes": 4,
+   "likes": 3,
    "platform": "yt",
    "published_at": "2026-11-19T14:30:25Z",
    "source": "search",
    "status": "new",
    "title": "NPS просто спавнятся 🫠 #GTAVI #gta #гта6 #stream #clips",
    "url": "https://www.youtube.com/shorts/dacLDm2qhJc",
-   "views": 579
+   "views": 586
   },
   "yt:dl3roABZWm4": {
    "author": "Kryzo",
@@ -8452,7 +8756,7 @@
    "status": "new",
    "title": "GTA 6 glitch found  || GTA 6 ☠️😂💀 || neoZ gamer ￼",
    "url": "https://www.youtube.com/shorts/dnLaQ53xt6c",
-   "views": 1046
+   "views": 1062
   },
   "yt:dnSeVPWQs9I": {
    "author": "Wastedly RU",
@@ -8599,7 +8903,7 @@
    "status": "new",
    "title": "Frankie Turned a Normal Day Into a DISASTER 💀 | GTA 6 #gta-6 funny #gta5clips",
    "url": "https://www.youtube.com/shorts/eg7I2nBT6kk",
-   "views": 1285
+   "views": 1287
   },
   "yt:ehYaf3A2laQ": {
    "author": "RIP SkellY",
@@ -8642,7 +8946,7 @@
    "status": "new",
    "title": "GTA 6 has 130 Stunt Jumps",
    "url": "https://www.youtube.com/shorts/ekwKH8rd_jA",
-   "views": 20764
+   "views": 20777
   },
   "yt:elLalIkQwOI": {
    "found_at": "2026-11-19T15:10:39Z",
@@ -8766,7 +9070,7 @@
    "status": "new",
    "title": "GTA6 WORKOUT FAIL! #GTA6",
    "url": "https://www.youtube.com/shorts/fDFlJN-LyrY",
-   "views": 1377
+   "views": 1405
   },
   "yt:fFdDrl8jyl4": {
    "author": "GTA 6 Moments",
@@ -9068,7 +9372,7 @@
    "status": "new",
    "title": "GTA 6 Tay-K glitch #gta6 #ps5 #gameplay #glitch",
    "url": "https://www.youtube.com/shorts/h-2QlsssxlY",
-   "views": 896
+   "views": 911
   },
   "yt:h0Gap8zQnG4": {
    "found_at": "2026-11-19T12:09:21Z",
@@ -9250,6 +9554,23 @@
    "title": "IShowSpeed Stunned as a GTA 6 NPC Quits Mid-Fight",
    "url": "https://www.youtube.com/shorts/hq_khESm4Io",
    "views": 806
+  },
+  "yt:htskn7y5rkc": {
+   "author": "Wasted Again",
+   "channel_id": "UCTkzOwfCsOWOtZhfNvv4KXg",
+   "comments": 0,
+   "duration": 14,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "htskn7y5rkc",
+   "key": "yt:htskn7y5rkc",
+   "likes": 9,
+   "platform": "yt",
+   "published_at": "2026-11-19T15:32:46Z",
+   "source": "search",
+   "status": "new",
+   "title": "GTA 6 glitch: red car clips through barrier pole 😭 #GTA6 #shorts",
+   "url": "https://www.youtube.com/shorts/htskn7y5rkc",
+   "views": 943
   },
   "yt:hvFxgQMlCMk": {
    "author": "Iansito",
@@ -9762,7 +10083,7 @@
    "status": "new",
    "title": "Bhai Red Light Ho Gayi! 😂🔥 GTA 6 Funny Moments #shorts",
    "url": "https://www.youtube.com/shorts/kLdRcxTIlqk",
-   "views": 8
+   "views": 12
   },
   "yt:kN0NE1T0GaU": {
    "author": "Devo 2x",
@@ -10072,6 +10393,23 @@
    "url": "https://www.youtube.com/shorts/lzQJDvmg7NY",
    "views": 10706
   },
+  "yt:m-HTd7Qxbh4": {
+   "author": "ZEDA",
+   "channel_id": "UCwhM5LkNp01ActE24j9UGug",
+   "comments": 0,
+   "duration": 19,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "m-HTd7Qxbh4",
+   "key": "yt:m-HTd7Qxbh4",
+   "likes": 26,
+   "platform": "yt",
+   "published_at": "2026-11-19T16:05:46Z",
+   "source": "search",
+   "status": "new",
+   "title": "GTA 6 con mas BUGS que Cyberpunk?😭 #gta6 #gtavi #glitch",
+   "url": "https://www.youtube.com/shorts/m-HTd7Qxbh4",
+   "views": 933
+  },
   "yt:m1zzvvddxPY": {
    "author": "VIRALITIES",
    "channel_id": "UCDkogivvK7U85GVtnLB76pw",
@@ -10199,14 +10537,14 @@
    "found_at": "2026-11-19T10:58:52Z",
    "id": "mjRCEHevVGo",
    "key": "yt:mjRCEHevVGo",
-   "likes": 52,
+   "likes": 53,
    "platform": "yt",
    "published_at": "2026-11-19T05:06:38Z",
    "source": "search",
    "status": "new",
    "title": "IlloJuan borró GTA 6 en directo 😱 | Clip de IlloJuan #GTA6 #shorts",
    "url": "https://www.youtube.com/shorts/mjRCEHevVGo",
-   "views": 1563
+   "views": 1594
   },
   "yt:mmpVeATOKbA": {
    "author": "Gamer Arafat",
@@ -10450,7 +10788,7 @@
    "status": "new",
    "title": "GTA VI vypadá přesně jak jsem čekal 🤯 #gta6 #clips #games #playstation #streamer #fattypillow",
    "url": "https://www.youtube.com/shorts/ncssEZBse5c",
-   "views": 672
+   "views": 674
   },
   "yt:ngQO_K50UU8": {
    "author": "Flasky_GTA_6",
@@ -10599,7 +10937,32 @@
    "status": "new",
    "title": "First Stunt In GTA 6! Big Air!",
    "url": "https://www.youtube.com/shorts/nvXhTqGG1CA",
-   "views": 2949
+   "views": 2954
+  },
+  "yt:oCDaGqvMElg": {
+   "author": "SujalisLive",
+   "channel_id": "UCT-85vOpnnwRu-GsxxUdMOw",
+   "comments": 21,
+   "duration": 13,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "oCDaGqvMElg",
+   "key": "yt:oCDaGqvMElg",
+   "likes": 357,
+   "mod_msgs": [
+    [
+     208061542,
+     159
+    ]
+   ],
+   "mod_sent_at": "2026-11-19T18:10:39Z",
+   "platform": "yt",
+   "published_at": "2026-11-19T14:09:39Z",
+   "source": "search",
+   "status": "pending",
+   "thumb_hash": "ccccaa6b0f7460f0",
+   "title": "GTA 6 FAIL 🤣 #gta6",
+   "url": "https://www.youtube.com/shorts/oCDaGqvMElg",
+   "views": 7820
   },
   "yt:oHK01MUQo0s": {
    "author": "Click Misk",
@@ -10771,6 +11134,13 @@
    "platform": "yt",
    "status": "rejected"
   },
+  "yt:pSCs1ex7O5o": {
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "pSCs1ex7O5o",
+   "key": "yt:pSCs1ex7O5o",
+   "platform": "yt",
+   "status": "rejected"
+  },
   "yt:pSj3ChhL70A": {
    "author": "Norianne",
    "channel_id": "UCPs-zPLqKJU9VYS1BTizazA",
@@ -10796,6 +11166,23 @@
    "tracked_at": "2026-11-19T17:40:48Z",
    "url": "https://www.youtube.com/shorts/pSj3ChhL70A",
    "views": 1533
+  },
+  "yt:phRegUTgV_w": {
+   "author": "Voizz Gaming",
+   "channel_id": "UC1i2iGyFbXqLi6JRxXitdUA",
+   "comments": 4,
+   "duration": 39,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "phRegUTgV_w",
+   "key": "yt:phRegUTgV_w",
+   "likes": 0,
+   "platform": "yt",
+   "published_at": "2026-11-19T17:33:20Z",
+   "source": "search",
+   "status": "new",
+   "title": "Glitch in GTA 6 ⚒️",
+   "url": "https://www.youtube.com/shorts/phRegUTgV_w",
+   "views": 522
   },
   "yt:plDF6LYMxpk": {
    "author": "GTA 6 Clips-7",
@@ -10829,7 +11216,7 @@
    "status": "new",
    "title": "GTA 6 : GLITCH ARGENT ILLIMITÉ *FACILE* ✅ SOLO (100K$/H)",
    "url": "https://www.youtube.com/shorts/pndOhj-hvAA",
-   "views": 919
+   "views": 925
   },
   "yt:pqh9KhEa_18": {
    "found_at": "2026-11-19T14:40:44Z",
@@ -10867,7 +11254,7 @@
    "status": "new",
    "title": "🚴‍♂️ JASON ON E-BIKE vs POLICE 🚨😂 BRO THOUGHT HE COULD ESCAPE! 🤣#gtavi #gta6 #gtavicecity",
    "url": "https://www.youtube.com/shorts/qPx-OVSKuig",
-   "views": 1278
+   "views": 1280
   },
   "yt:qQ1vz78IhH8": {
    "author": "FiveStar Clips",
@@ -10884,7 +11271,7 @@
    "status": "new",
    "title": "Bro Found The First GTA 6 Glitch 🥀 #tyrone #gta6 #gta",
    "url": "https://www.youtube.com/shorts/qQ1vz78IhH8",
-   "views": 14
+   "views": 13
   },
   "yt:qTMJH1kqk-A": {
    "found_at": "2026-11-19T10:58:52Z",
@@ -10966,7 +11353,7 @@
    "status": "new",
    "title": "KAI FAILS TO STEAL HIS FIRST BIKE IN GTA 6 LMAOOO #viral #gta6  #rockstargames  #fypシ #games #clips",
    "url": "https://www.youtube.com/shorts/qpvhcgevghw",
-   "views": 1376
+   "views": 1392
   },
   "yt:qt3kBiHiScM": {
    "author": "MQVI",
@@ -11000,7 +11387,7 @@
    "status": "new",
    "title": "xQc FAILS at Grand Theft Auto in GTA 6 😂",
    "url": "https://www.youtube.com/shorts/qzKUmN0qyS0",
-   "views": 2670
+   "views": 2673
   },
   "yt:r2QOiY4PK_0": {
    "found_at": "2026-11-19T13:10:57Z",
@@ -11024,7 +11411,7 @@
    "status": "new",
    "title": "Worst Police Officer Ever #robrun #gta6 #funny #gaming #fail #streamladder",
    "url": "https://www.youtube.com/shorts/r6vF1j1PF6A",
-   "views": 1236
+   "views": 1234
   },
   "yt:r9Y0uFWDkDc": {
    "found_at": "2026-11-19T12:41:09Z",
@@ -11092,7 +11479,7 @@
    "status": "new",
    "title": "XQC Doesn't Like GTA6? #gta6  #xqc  #streamer  #clips  #viral  #gta  #gtavi",
    "url": "https://www.youtube.com/shorts/rCKAm1WTzII",
-   "views": 873
+   "views": 876
   },
   "yt:rNqWOuzq-vc": {
    "found_at": "2026-11-19T10:58:52Z",
@@ -11130,7 +11517,7 @@
    "status": "new",
    "title": "Crocodile in gta 6 #funny #viral #gamespeed #neon #clip",
    "url": "https://www.youtube.com/shorts/raiefjz5r9k",
-   "views": 260
+   "views": 343
   },
   "yt:rgxYcwo2kr4": {
    "author": "LOSING DIRECTION",
@@ -11248,7 +11635,7 @@
    "status": "new",
    "title": "BRO GOT CAUGHT ON CAMERA 😭💀 | GTA 6 Funny Moments #shorts #gta6 #funnymoments",
    "url": "https://www.youtube.com/shorts/rxFJft-iYLo",
-   "views": 6
+   "views": 0
   },
   "yt:s7py6yImsac": {
    "author": "LeonidaWire",
@@ -11318,14 +11705,14 @@
    "found_at": "2026-11-19T17:40:48Z",
    "id": "sLDB9vvUQ9U",
    "key": "yt:sLDB9vvUQ9U",
-   "likes": 6,
+   "likes": 8,
    "platform": "yt",
    "published_at": "2026-11-19T17:03:37Z",
    "source": "search",
    "status": "new",
    "title": "Que vivan los novios 🥰 #gta #gtavi #grandtheftauto #streamer #clips",
    "url": "https://www.youtube.com/shorts/sLDB9vvUQ9U",
-   "views": 320
+   "views": 421
   },
   "yt:sNwOuNS1ADY": {
    "author": "PRXTRXN",
@@ -11342,7 +11729,7 @@
    "status": "new",
    "title": "GTA 6 npc’s are crazyyyy af🔥 #gta6",
    "url": "https://www.youtube.com/shorts/sNwOuNS1ADY",
-   "views": 1255
+   "views": 1273
   },
   "yt:sPP4Xfii8cw": {
    "found_at": "2026-11-19T17:40:48Z",
@@ -11366,7 +11753,7 @@
    "status": "new",
    "title": "Jugué al Basket en GTA VI 🏀 #baloncesto #gta6 #gtavi #miguez01 #clip",
    "url": "https://www.youtube.com/shorts/sSASFhsCFxk",
-   "views": 9
+   "views": 8
   },
   "yt:sayWw450r2E": {
    "author": "Fox Posts",
@@ -11564,7 +11951,7 @@
    "status": "new",
    "title": "Jason Was NOT Ready for This 💀😂 | GTA 6 Funny Moment #gta6 #gamingshorts #shorts #gameplay #gaming",
    "url": "https://www.youtube.com/shorts/t_0_pK4D0-Q",
-   "views": 2
+   "views": 1
   },
   "yt:t_RreC42MGM": {
    "author": "GTAcklips",
@@ -11598,7 +11985,7 @@
    "status": "new",
    "title": "😱 GTA 6 NPCs Are TOO REAL! 🤯🔥 #GTA6 #Shorts",
    "url": "https://www.youtube.com/shorts/td7JQE0Jg8Q",
-   "views": 1257
+   "views": 1267
   },
   "yt:td7cXDdu2hQ": {
    "author": "Wolverine",
@@ -11777,7 +12164,7 @@
    "status": "new",
    "title": "Are GTA 6 NPC’s Actually Boring???😱😱 #gta6 #vicecity #gameplay #npc #gtavi #gta6news",
    "url": "https://www.youtube.com/shorts/uA1yiYRbGMA",
-   "views": 93
+   "views": 101
   },
   "yt:uAMJHWlIcLM": {
    "author": "Umit Tm",
@@ -11794,7 +12181,24 @@
    "status": "new",
    "title": "ТОП МОМЕНТЫ В GTA 6 🔥 | Лучшая нарезка со стрима #shorts #gta6",
    "url": "https://www.youtube.com/shorts/uAMJHWlIcLM",
-   "views": 97
+   "views": 91
+  },
+  "yt:uCyReZsAqk4": {
+   "author": "SeriumTV",
+   "channel_id": "UChEzsK6hh_KhqaTvPIzjcsA",
+   "comments": 3,
+   "duration": 62,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "uCyReZsAqk4",
+   "key": "yt:uCyReZsAqk4",
+   "likes": 24,
+   "platform": "yt",
+   "published_at": "2026-11-18T11:12:43Z",
+   "source": "search",
+   "status": "new",
+   "title": "Das ist nicht deren Ernst??! #gta6 #news #twitchde #clip #fail",
+   "url": "https://www.youtube.com/shorts/uCyReZsAqk4",
+   "views": 1891
   },
   "yt:uEQ9tg64VR4": {
    "found_at": "2026-11-19T11:32:49Z",
@@ -11825,7 +12229,7 @@
    "status": "new",
    "title": "This is not a drill! police chase ll  #gta6 #gtagameplay #gaming #gtashorts #gtax #gta5",
    "url": "https://www.youtube.com/shorts/ui8DSwViPGw",
-   "views": 1090
+   "views": 1088
   },
   "yt:unBYEqzLQdE": {
    "author": "SQUEEZIE GAMING",
@@ -11940,7 +12344,7 @@
    "status": "new",
    "title": "GTA 6 FUNNY MOMENTS 😂💀 | NPCs Are Crazy! #gta6  #Shorts #funny",
    "url": "https://www.youtube.com/shorts/v-QwU2H-rVY",
-   "views": 302
+   "views": 304
   },
   "yt:v14JUXrynKc": {
    "author": "Schmerle",
@@ -11957,7 +12361,7 @@
    "status": "new",
    "title": "GTA 6 ist OFFIZIELL da nach 13 Jahren! 🥳😭 #gta6 #fyp #viral #clip",
    "url": "https://www.youtube.com/shorts/v14JUXrynKc",
-   "views": 3961
+   "views": 3976
   },
   "yt:vFAEem9GyZU": {
    "found_at": "2026-11-19T12:41:09Z",
@@ -11981,7 +12385,7 @@
    "status": "new",
    "title": "LOS PRIMEROS SALTOS EN GTA 6 🔥 #gta #gta6 #gtavi #shorts #funny #gaming #viral #stunt #fyp",
    "url": "https://www.youtube.com/shorts/vFF8KCcicS8",
-   "views": 2226
+   "views": 2229
   },
   "yt:vMx6ph5MsOI": {
    "author": "Aryang Gaming",
@@ -11998,7 +12402,7 @@
    "status": "new",
    "title": "BUG GTA 6 #bug #gta6 #aryanggaming",
    "url": "https://www.youtube.com/shorts/vMx6ph5MsOI",
-   "views": 1214
+   "views": 1254
   },
   "yt:vPiJyrYUq2w": {
    "found_at": "2026-11-19T13:10:57Z",
@@ -12039,7 +12443,24 @@
    "status": "new",
    "title": "This GTA 6 NPC Poured Gas In His Truck… Then Drove It Into a HOUSE 💀😭",
    "url": "https://www.youtube.com/shorts/vXEZkSbCuFI",
-   "views": 958
+   "views": 976
+  },
+  "yt:vfyWCO2JGsY": {
+   "author": "KAZUROX👹",
+   "channel_id": "UC3bNRVfNb_reChjgBr-135A",
+   "comments": 0,
+   "duration": 60,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "vfyWCO2JGsY",
+   "key": "yt:vfyWCO2JGsY",
+   "likes": 26,
+   "platform": "yt",
+   "published_at": "2026-11-19T16:39:36Z",
+   "source": "search",
+   "status": "new",
+   "title": "bro found a glitch on gta6 #gta6 #glitch #1million #gameplay #shorts #gaming",
+   "url": "https://www.youtube.com/shorts/vfyWCO2JGsY",
+   "views": 790
   },
   "yt:vgOdD_YhZzc": {
    "author": "NimooClipp",
@@ -12056,7 +12477,7 @@
    "status": "new",
    "title": "malah dapet kode redeem #gtavi #gta #luthfihalimawan #clips #clip #fyp #gameplay",
    "url": "https://www.youtube.com/shorts/vgOdD_YhZzc",
-   "views": 1278
+   "views": 1231
   },
   "yt:viGO0ySJjQY": {
    "author": "Puzzle Knows",
@@ -12073,7 +12494,7 @@
    "status": "new",
    "title": "You Can Fail the GTA 6 Police Chase If You Don't Follow the Route",
    "url": "https://www.youtube.com/shorts/viGO0ySJjQY",
-   "views": 1580
+   "views": 1581
   },
   "yt:viUBiT4c4jQ": {
    "found_at": "2026-11-19T11:32:49Z",
@@ -12097,7 +12518,7 @@
    "status": "new",
    "title": "GTA 6 Funny Moments Are Already INSANE 😂💀",
    "url": "https://www.youtube.com/shorts/vkMTqHE5kQg",
-   "views": 1263
+   "views": 1269
   },
   "yt:vodkuS1VIqQ": {
    "author": "zachlath",
@@ -12124,14 +12545,14 @@
    "found_at": "2026-11-19T11:32:49Z",
    "id": "w-OPwOLwWQE",
    "key": "yt:w-OPwOLwWQE",
-   "likes": 58,
+   "likes": 57,
    "platform": "yt",
    "published_at": "2026-11-18T06:52:26Z",
    "source": "search",
    "status": "new",
    "title": "Funny Moments 😂#gta #gtasanandreas #shortsfunny",
    "url": "https://www.youtube.com/shorts/w-OPwOLwWQE",
-   "views": 2442
+   "views": 2440
   },
   "yt:w41Aliy1a6s": {
    "found_at": "2026-11-19T17:09:34Z",
@@ -12195,7 +12616,7 @@
    "status": "new",
    "title": "consertei o telhado da casa #gtavi #gta6 #clips #streamer #cortes",
    "url": "https://www.youtube.com/shorts/wCMYaBMCfug",
-   "views": 958
+   "views": 970
   },
   "yt:wEtY1msrWLU": {
    "found_at": "2026-11-19T17:09:34Z",
@@ -12278,7 +12699,7 @@
    "status": "new",
    "title": "GTA 6 Glitch !!! #4 #gta6 #glitch",
    "url": "https://www.youtube.com/shorts/waTCbHKd8Kw",
-   "views": 508
+   "views": 526
   },
   "yt:wdkTjsS2QNQ": {
    "author": "GTALab360",
@@ -12470,7 +12891,7 @@
    "status": "new",
    "title": "INTERACCIÓN DE COCHES #gtavi #gta6 #gta #grandtheftauto #clip",
    "url": "https://www.youtube.com/shorts/x4rO-vijvIw",
-   "views": 45
+   "views": 47
   },
   "yt:x6tDsGpXprc": {
    "author": "Venom Gaming",
@@ -12504,7 +12925,7 @@
    "status": "new",
    "title": "xQc encounters first GTA VI road rage npc😲👀#gta #gta6 #gtaiv #gtavi #grandtheftauto #gta6clips #clip",
    "url": "https://www.youtube.com/shorts/xBotVg9k27Y",
-   "views": 1328
+   "views": 1349
   },
   "yt:xDHUqZ4TZkI": {
    "found_at": "2026-11-19T12:41:09Z",
@@ -12512,6 +12933,23 @@
    "key": "yt:xDHUqZ4TZkI",
    "platform": "yt",
    "status": "rejected"
+  },
+  "yt:xGRfTphQtUM": {
+   "author": "Umax",
+   "channel_id": "UCNrCME5rgLex3EQ9rmfNeEQ",
+   "comments": 0,
+   "duration": 23,
+   "found_at": "2026-11-19T18:10:39Z",
+   "id": "xGRfTphQtUM",
+   "key": "yt:xGRfTphQtUM",
+   "likes": 8,
+   "platform": "yt",
+   "published_at": "2026-11-19T04:25:04Z",
+   "source": "search",
+   "status": "new",
+   "title": "Fails a bench press in gta 6",
+   "url": "https://www.youtube.com/shorts/xGRfTphQtUM",
+   "views": 2765
   },
   "yt:xJTRYdwPybw": {
    "author": "Billu Ka Adda",
@@ -12623,7 +13061,7 @@
    "found_at": "2026-11-19T11:32:49Z",
    "id": "xVMll_7_QqA",
    "key": "yt:xVMll_7_QqA",
-   "likes": 274,
+   "likes": 275,
    "platform": "yt",
    "published_at": "2026-11-18T22:39:08Z",
    "source": "search",
@@ -12678,7 +13116,7 @@
    "status": "new",
    "title": "This GTA 6 NPC Said Someone Was Hunting Him… Then I Heard a Gunshot 😳   #gta #gta6 #rockstargames",
    "url": "https://www.youtube.com/shorts/y7ynk7lSmpo",
-   "views": 513
+   "views": 514
   },
   "yt:y7yzyJqk3U0": {
    "found_at": "2026-11-19T10:46:36Z",
@@ -12736,7 +13174,7 @@
    "status": "new",
    "title": "Gta-6 pawn shop robbery clip | #gtaworld | Live Stream| #gtapc #gaming #gta #gta6 #gtaonline #gtavi",
    "url": "https://www.youtube.com/shorts/yLOWP2ETfBE",
-   "views": 989
+   "views": 1006
   },
   "yt:ylvuGn1mEIs": {
    "found_at": "2026-11-19T14:10:39Z",
@@ -12760,7 +13198,7 @@
    "status": "new",
    "title": "LUCICA OUT RUNS POLICE #gaming #gta6 #gta #gtavi #gtavicecity #gameplay #twitchstreamer #clips #fun",
    "url": "https://www.youtube.com/shorts/ysZHHulS-S4",
-   "views": 356
+   "views": 360
   },
   "yt:yuvdx-sP1-Q": {
    "author": "Sgt Gaz",
@@ -12835,7 +13273,7 @@
    "status": "new",
    "title": "Kai Cenat Argues With GTA 6 NPC",
    "url": "https://www.youtube.com/shorts/zHcQ68InytU",
-   "views": 896
+   "views": 928
   },
   "yt:zHfnWPex_gM": {
    "found_at": "2026-11-19T14:40:44Z",
@@ -12927,11 +13365,11 @@
   }
  },
  "state": {
-  "cursor": 30,
-  "last_search_at": "2026-11-19T17:40:48Z",
+  "cursor": 32,
+  "last_search_at": "2026-11-19T18:10:39Z",
   "last_track_at": "2026-11-19T17:40:48Z",
   "links_done": [],
-  "search_count": 30,
+  "search_count": 32,
   "search_day": "2026-11-19",
   "tg_offset": 596870536,
   "top": [
@@ -12942,6 +13380,6 @@
    "yt:bQqCX94HqJQ"
   ],
   "top_day": "2026-11-19",
-  "worker_seq": 134
+  "worker_seq": 136
  }
 }
