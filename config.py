@@ -5,7 +5,7 @@
 """
 
 # --- Сайт и канал -----------------------------------------------------------
-SITE_TITLE = "GTA6 NEWS"
+SITE_TITLE = "GTA6 HOT"
 SITE_TAGLINE = "The funniest GTA 6 clips in one feed. Unofficial fan project."
 SITE_URL = "https://gta6hot.com/"   # со слэшем в конце; тот же адрес прописан в мета-тегах docs/index.html
 TELEGRAM_URL = "https://t.me/gta6hotreels"
