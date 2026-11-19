@@ -3,7 +3,7 @@ import html
 import os
 
 import config as cfg
-from . import links, net
+from . import links, net, pages
 
 
 def token():
@@ -27,18 +27,13 @@ def _call(method, payload):
     return net.post_json("telegram", f"https://api.telegram.org/bot{token()}/{method}", payload)
 
 
-def fmt_views(n):
-    if n >= 1_000_000:
-        return f"{n / 1_000_000:.1f}M".replace(".0M", "M")
-    if n >= 1_000:
-        return f"{n / 1_000:.1f}K".replace(".0K", "K")
-    return str(n)
+fmt_views = links.fmt_views
 
 
 def site_link(item):
     if not cfg.SITE_URL:
         return ""
-    return f"{cfg.SITE_URL}c/{links.slug(item)}/"   # страница ролика: с превью и открывает ленту на нём
+    return pages.share_url(item)   # превью берётся со страницы ролика, а открывается лента на нём
 
 
 def caption(item):
@@ -83,6 +78,31 @@ def post(item):
     _call("sendMessage", {
         "chat_id": channel(), "text": caption(item), "parse_mode": "HTML",
         "link_preview_options": _preview(item),
+    })
+
+
+def top_text(items):
+    """Текст ежедневной подборки: места, названия со ссылками в ленту, просмотры."""
+    lines = [f"🔥 <b>Top {len(items)} GTA 6 clips of the day</b>", ""]
+    for n, item in enumerate(items, 1):
+        title = html.escape(pages.clean_title(item)[:70])
+        lines.append(f'{n}. <a href="{html.escape(site_link(item))}">{title}</a>')
+        meta = []
+        if item.get("author"):
+            meta.append("👤 " + html.escape(item["author"]))
+        if item.get("views"):
+            meta.append("👁 " + fmt_views(item["views"]))
+        if meta:
+            lines.append("    " + " · ".join(meta))
+    lines += ["", f'▶️ <a href="{html.escape(cfg.SITE_URL)}top/{pages.FEED_MARK}">Watch them all in a row</a>']
+    return "\n".join(lines)
+
+
+def post_top(items):
+    """Подборка лучших роликов за сутки одним постом в канал."""
+    _call("sendMessage", {
+        "chat_id": channel(), "text": top_text(items), "parse_mode": "HTML",
+        "link_preview_options": {"url": cfg.SITE_URL + "top/", "prefer_large_media": True},
     })
 
 

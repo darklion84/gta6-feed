@@ -51,7 +51,7 @@ jobs:
         run: |
           git config user.name "feed-bot"
           git config user.email "feed-bot@users.noreply.github.com"
-          git add data docs/feed.json docs/c
+          git add data docs
           if ! git diff --cached --quiet -- docs/feed.json; then
             echo "feed_changed=true" >> "$GITHUB_OUTPUT"
           fi

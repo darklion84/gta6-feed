@@ -56,6 +56,14 @@ def slug(item):
     return f"{item['platform']}-{item['id']}".replace("/", "_")
 
 
+def fmt_views(n):
+    if n >= 1_000_000:
+        return f"{n / 1_000_000:.1f}M".replace(".0M", "M")
+    if n >= 1_000:
+        return f"{n / 1_000:.1f}K".replace(".0K", "K")
+    return str(n)
+
+
 def key(parsed):
     return f"{parsed['platform']}:{parsed['id']}"
 

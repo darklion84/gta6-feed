@@ -99,6 +99,8 @@ class Base(unittest.TestCase):
         store.LINKS_PATH = os.path.join(d, "links.txt")
         store.WORKER_URL_PATH = os.path.join(d, "data", "worker_url.txt")
         store.CLIPS_DIR = os.path.join(d, "docs", "c")
+        store.TOP_DIR = os.path.join(d, "docs", "top")
+        store.SITEMAP_PATH = os.path.join(d, "docs", "sitemap.xml")
         os.environ["WORKER_URL"] = ""
         self.fake = Fake()
         self._orig = (net.get_json, net.post_json, net.get_bytes, net.resolve)
@@ -109,9 +111,10 @@ class Base(unittest.TestCase):
                           TELEGRAM_CHANNEL="@chan", TELEGRAM_ADMIN_IDS="42")
         self._cfg = {k: getattr(cfg, k) for k in (
             "MODERATION", "POPULAR_MIN_VIEWS", "FRESH_MAX_AGE_HOURS",
-            "FRESH_MIN_VIEWS", "FRESH_MIN_VELOCITY")}
+            "FRESH_MIN_VIEWS", "FRESH_MIN_VELOCITY", "TOP_ENABLED", "MAX_POSTS_PER_RUN")}
         # тесты не должны зависеть от того, как настроен боевой config.py
         cfg.MODERATION = False
+        cfg.TOP_ENABLED = False     # подборку дня проверяет отдельный набор тестов
         cfg.POPULAR_MIN_VIEWS, cfg.FRESH_MAX_AGE_HOURS = 100_000, 6
         cfg.FRESH_MIN_VIEWS, cfg.FRESH_MIN_VELOCITY = 5_000, 2_000
 
@@ -512,15 +515,56 @@ class ClipPages(Base):
         self.assertIn(f'<meta property="og:url" content="{cfg.SITE_URL}c/yt-popular0001/">', html_)
         self.assertIn("Cop &lt;b&gt;flips&lt;/b&gt; &quot;car&quot; &amp; more", html_)   # название обезврежено
         self.assertNotIn("<b>flips", html_)
-        self.assertIn('location.replace("../../#yt-popular0001")', html_)
+        # в ленту страница перебрасывает только по ссылке с меткой #feed: поисковик
+        # метку не видит и получает обычную страницу с плеером
+        self.assertIn('<script>if(location.hash==="#feed")location.replace("../../#yt-popular0001");</script>', html_)
+        self.assertEqual(html_.count("location.replace("), 1)
+        self.assertIn(f'<link rel="canonical" href="{cfg.SITE_URL}c/yt-popular0001/">', html_)
+        self.assertIn('data-src="https://www.youtube.com/embed/popular0001?', html_)
+        self.assertIn('href="../../#next:yt-popular0001"', html_)
+        markup = json.loads(html_.split('<script type="application/ld+json">')[1].split("</script>")[0])
+        self.assertEqual(markup["@type"], "VideoObject")
+        self.assertEqual(markup["embedUrl"], "https://www.youtube.com/embed/popular0001")
+        self.assertEqual(markup["duration"], "PT40S")
+        self.assertNotIn("#gta6", markup["name"])                 # хештеги из названия убраны
         # ссылка в ленте и в посте ведёт на страницу ролика
         item = [i for i in self.feed()["items"] if i["id"] == "popular0001"][0]
         self.assertEqual(item["page"], "c/yt-popular0001/")
-        self.assertIn(f'{cfg.SITE_URL}c/yt-popular0001/', self.fake.posts[0]["text"] + str(self.fake.posts))
+        self.assertIn(f'{cfg.SITE_URL}c/yt-popular0001/#feed"', "".join(p["text"] for p in self.fake.posts))
+        # карта сайта перечисляет главную, подборку и страницы роликов
+        with open(store.SITEMAP_PATH, encoding="utf-8") as f:
+            sitemap = f.read()
+        for url in ("", "top/", "c/yt-popular0001/", "c/yt-freshfast01/"):
+            self.assertIn(f"<loc>{cfg.SITE_URL}{url}</loc>", sitemap)
         # ролик ушёл из ленты: его страница убирается
         self.fake.search_ids = []
         app.run(T + timedelta(days=cfg.KEEP_DAYS + 1))
         self.assertEqual(os.listdir(store.CLIPS_DIR), [])
+        with open(store.SITEMAP_PATH, encoding="utf-8") as f:
+            self.assertNotIn("/c/", f.read())
+
+    def test_page_links_to_older_neighbours_only(self):
+        # новый ролик не заставляет переписывать страницы прежних
+        Pipeline.seed(self)
+        app.run(T)
+        before = {s: self.page(s) for s in os.listdir(store.CLIPS_DIR)}
+        self.fake.videos["freshslow01"]["statistics"]["viewCount"] = "150000"
+        app.run(T + timedelta(minutes=30))
+        for slug, text in before.items():
+            self.assertEqual(self.page(slug), text)
+        newest = self.page("yt-freshslow01")
+        self.assertIn('href="../../c/yt-popular0001/"', newest)
+        self.assertIn('href="../../c/yt-freshfast01/"', newest)
+
+    def test_pages_of_other_platforms(self):
+        self.fake.updates.append({"update_id": 1, "message": {
+            "message_id": 5, "from": {"id": 42}, "chat": {"id": 42},
+            "text": "https://www.tiktok.com/@rider/video/7300000000000000001"}})
+        app.run(T)
+        html_ = self.page("tt-7300000000000000001")
+        self.assertIn('data-src="https://www.tiktok.com/player/v1/7300000000000000001?', html_)
+        self.assertIn(f'<meta property="og:image" content="{cfg.SITE_URL}og.png">', html_)
+        self.assertNotIn("application/ld+json", html_)            # своего кадра нет: без разметки видео
 
     def test_site_page_points_at_the_configured_address(self):
         root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -530,6 +574,91 @@ class ClipPages(Base):
         self.assertIn(f'<meta property="og:url" content="{cfg.SITE_URL}">', index)
         self.assertIn(f'<meta property="og:image" content="{cfg.SITE_URL}og.png">', index)
         self.assertTrue(os.path.exists(os.path.join(root, "docs", "og.png")))
+        self.assertIn(f'<link rel="canonical" href="{cfg.SITE_URL}">', index)
+        self.assertIn(cfg.CF_BEACON_TOKEN, index)
+        with open(os.path.join(root, "docs", "robots.txt"), encoding="utf-8") as f:
+            self.assertIn(f"Sitemap: {cfg.SITE_URL}sitemap.xml", f.read())
+
+
+class DailyTop(Base):
+    """Раз в сутки в канал уходит подборка самых просматриваемых роликов дня."""
+
+    def setUp(self):
+        super().setUp()
+        cfg.TOP_ENABLED = True
+        cfg.MAX_POSTS_PER_RUN = 10
+        self.evening = T.replace(hour=cfg.TOP_HOUR_UTC, minute=5)
+
+    def seed(self, count=6):
+        f = self.fake
+        f.videos = {f"topclip{n:04d}": vid(f"topclip{n:04d}", f"GTA 6 funny moment {n} unique{n * 7919} #gta6",
+                                           200_000 + n * 1000, 10, duration=20 + n * 5, channel=f"UC{n}")
+                    for n in range(count)}
+        f.search_ids = list(f.videos)
+
+    def tops(self):
+        return [p for p in self.fake.posts if "Top" in p.get("text", "") and "clips of the day" in p["text"]]
+
+    def test_one_post_a_day_with_the_most_watched(self):
+        self.seed()
+        app.run(self.evening - timedelta(minutes=10))             # до назначенного часа: рано
+        self.assertEqual(self.tops(), [])
+        self.assertEqual(self.feed()["top"], [])
+        app.run(self.evening)
+        top = self.tops()
+        self.assertEqual(len(top), 1)
+        text = top[0]["text"]
+        self.assertIn("Top 5 GTA 6 clips of the day", text)
+        order = [text.index(f"c/yt-topclip{n:04d}/#feed") for n in (5, 4, 3, 2, 1)]
+        self.assertEqual(order, sorted(order))                    # по убыванию просмотров
+        self.assertNotIn("topclip0000", text)                     # шестой в подборку не попал
+        self.assertNotIn("#gta6", text.replace("#feed", ""))      # названия без хештегов
+        self.assertIn(f'{cfg.SITE_URL}top/#feed', text)
+        self.assertEqual(top[0]["link_preview_options"]["url"], cfg.SITE_URL + "top/")
+        self.assertEqual(self.feed()["top"], [f"yt-topclip{n:04d}" for n in (5, 4, 3, 2, 1)])
+        with open(os.path.join(store.TOP_DIR, "index.html"), encoding="utf-8") as f:
+            page = f.read()
+        self.assertIn("Top 5 GTA 6 clips today", page)
+        self.assertLess(page.index("c/yt-topclip0005/"), page.index("c/yt-topclip0001/"))
+        self.assertIn('if(location.hash==="#feed")location.replace("../#top")', page)
+        # в тот же день второй подборки не будет, на следующий выйдет новая
+        app.run(self.evening + timedelta(hours=1))
+        self.assertEqual(len(self.tops()), 1)
+        self.fake.videos["topclip0000"]["statistics"]["viewCount"] = "900000"
+        app.run(self.evening + timedelta(hours=23))               # ролики ещё в пределах суток
+        self.assertEqual(len(self.tops()), 1)
+        app.run(self.evening + timedelta(hours=23, minutes=50))   # наступил следующий день, 16:55: рано
+        self.assertEqual(len(self.tops()), 1)
+
+    def test_quiet_day_has_no_top(self):
+        self.seed(count=2)
+        app.run(self.evening)
+        self.assertEqual(self.tops(), [])
+        with open(os.path.join(store.TOP_DIR, "index.html"), encoding="utf-8") as f:
+            self.assertIn("on its way", f.read())                 # страница есть, но без списка
+
+    def test_failed_post_is_retried_on_the_next_run(self):
+        self.seed()
+        app.run(self.evening - timedelta(minutes=10))
+        real = net.post_json
+
+        def flaky(service, url, payload):
+            if url.endswith("/sendMessage") and "clips of the day" in payload.get("text", ""):
+                raise net.ApiError("telegram", 500, "Internal Server Error")
+            return real(service, url, payload)
+        net.post_json = flaky
+        app.run(self.evening)
+        self.assertEqual(self.feed()["top"], [])
+        net.post_json = real
+        app.run(self.evening + timedelta(minutes=10))
+        self.assertEqual(len(self.tops()), 1)
+
+    def test_top_survives_clips_leaving_the_feed(self):
+        self.seed()
+        app.run(self.evening)
+        self.fake.search_ids = []
+        app.run(self.evening + timedelta(days=cfg.KEEP_DAYS + 1, hours=-6))   # до нового часа подборки
+        self.assertEqual(self.feed()["top"], [])
 
 
 class Tracking(Base):

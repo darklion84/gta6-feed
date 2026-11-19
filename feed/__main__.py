@@ -5,7 +5,8 @@
 3. обновить просмотры у кандидатов
 4. опубликовать одобренное; новых кандидатов отправить админу на модерацию
    (или сразу в канал, если MODERATION = False)
-5. пересобрать docs/feed.json для сайта
+5. раз в сутки отправить в канал подборку лучших роликов дня
+6. пересобрать сайт: docs/feed.json, страницы роликов, подборку, карту сайта
 
 Статусы записи: new -> pending -> approved -> published
                 (а также rejected, duplicate, expired, failed)
@@ -14,7 +15,7 @@ import json
 import logging
 import os
 import re
-from datetime import timedelta
+from datetime import timedelta, timezone
 
 import config as cfg
 from . import dedup, links, net, pages, store, telegram, worker, youtube
@@ -532,7 +533,34 @@ def publish(db, t):
     return posted
 
 
-# --- 5. уборка и выдача сайту ------------------------------------------------------
+# --- 5. подборка дня -----------------------------------------------------------------
+
+def daily_top(db, t):
+    """Раз в сутки: один пост с самыми просматриваемыми роликами дня. -> вышла ли подборка."""
+    st = db["state"]
+    now = t.astimezone(timezone.utc)
+    day = now.strftime("%Y-%m-%d")
+    if not cfg.TOP_ENABLED or now.hour < cfg.TOP_HOUR_UTC or st.get("top_day") == day:
+        return False
+    fresh = [i for i in db["items"].values()
+             if i["status"] == "published" and i["platform"] in links.SITE_PLATFORMS
+             and i.get("views") and store.hours_since(i["posted_at"], t) <= cfg.TOP_WINDOW_HOURS]
+    fresh.sort(key=lambda i: (-i["views"], i["key"]))
+    best = fresh[:cfg.TOP_COUNT]
+    if len(best) < cfg.TOP_MIN_COUNT:
+        return False      # день выдался тихий: попробуем на следующем проходе
+    if telegram.enabled():
+        try:
+            telegram.post_top(best)
+        except net.ApiError as e:
+            log.warning("подборка дня не отправлена: %s", e)
+            return False
+    st["top_day"], st["top"] = day, [i["key"] for i in best]
+    log.info("подборка дня: %s", ", ".join(st["top"]))
+    return True
+
+
+# --- 6. уборка и выдача сайту ------------------------------------------------------
 
 def prune(db, t):
     old = [k for k, i in db["items"].items()
@@ -546,10 +574,15 @@ def build_feed(db, t):
                   if i["status"] == "published" and i["platform"] in links.SITE_PLATFORMS),
                  key=lambda i: (i["posted_at"], i["key"]), reverse=True)[:cfg.FEED_SIZE]
     fields = ("platform", "id", "url", "title", "author", "views", "duration", "posted_at")
+    # подборка дня: только те её ролики, что ещё есть в ленте, в порядке мест
+    in_feed = {i["key"]: i for i in pub}
+    top = [in_feed[k] for k in db["state"].get("top", []) if k in in_feed]
+    top_day = db["state"].get("top_day", "")
     feed = {"title": cfg.SITE_TITLE, "tagline": cfg.SITE_TAGLINE,
             "telegram_url": cfg.TELEGRAM_URL,
+            "top": [f"{i['platform']}-{i['id']}" for i in top], "top_day": top_day,
             "items": [{**{f: i.get(f) for f in fields}, "page": f"c/{links.slug(i)}/"} for i in pub]}
-    pages.build(pub)
+    pages.build(pub, top, top_day)
     try:
         with open(store.FEED_PATH, encoding="utf-8") as f:
             old = json.load(f)
@@ -568,6 +601,7 @@ def run(t=None):
     added = collect_youtube(db, t)
     refresh_stats(db, t, added)
     posted = publish(db, t)
+    daily_top(db, t)
     prune(db, t)
     total = build_feed(db, t)
     store.save(db)

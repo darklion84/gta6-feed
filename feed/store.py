@@ -6,7 +6,9 @@ from datetime import datetime, timedelta, timezone
 DB_PATH = "data/db.json"
 FEED_PATH = "docs/feed.json"
 LINKS_PATH = "links.txt"
-CLIPS_DIR = "docs/c"                       # страницы отдельных роликов (для превью при пересылке)
+CLIPS_DIR = "docs/c"                       # страницы отдельных роликов (превью при пересылке и поиск)
+TOP_DIR = "docs/top"                       # страница лучших роликов за сутки
+SITEMAP_PATH = "docs/sitemap.xml"          # карта сайта для поисковиков
 WORKER_URL_PATH = "data/worker_url.txt"   # пишет .github/workflows/worker.yml после выкладки
 
 
