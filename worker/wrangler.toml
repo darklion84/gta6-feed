@@ -1,0 +1,27 @@
+# Обработчик Telegram на Cloudflare Workers (бесплатный тариф).
+# Выкладывается сам: .github/workflows/worker.yml
+name = "gta6-feed-bot"
+main = "worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+# Раз в 10 минут воркер запускает сборщик в GitHub Actions: надёжнее, чем расписание GitHub.
+[triggers]
+crons = ["*/10 * * * *"]
+
+[vars]
+CHANNEL = "@gta6hotreels"
+REPO = "darklion84/gta6-feed"
+WORKFLOW = "feed.yml"
+
+# Очередь событий для сборщика и защита от двойных нажатий.
+[[durable_objects.bindings]]
+name = "QUEUE"
+class_name = "Queue"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Queue"]
+
+# Секреты (задаются при выкладке из секретов GitHub):
+#   TELEGRAM_BOT_TOKEN, TELEGRAM_ADMIN_IDS, DISPATCH_TOKEN

@@ -97,16 +97,22 @@ def reply(chat_id, text):
 # --- модерация ----------------------------------------------------------------
 
 def send_candidate(chat_id, item, note=""):
-    """Кандидат админу в личку с кнопками. -> message_id или None."""
+    """Кандидат админу в личку с кнопками. -> message_id или None.
+
+    Текст сообщения совпадает с будущим постом буква в букву: обработчик на
+    Cloudflare публикует в канал именно то, что видит админ. Служебная
+    статистика поэтому живёт не в тексте, а на отдельной кнопке-подписи.
+    """
+    rows = [[
+        {"text": "✅ В канал", "callback_data": f"ok|{item['key']}"},
+        {"text": "❌ Пропустить", "callback_data": f"no|{item['key']}"},
+    ]]
+    if note:
+        rows.append([{"text": note, "callback_data": "noop"}])
     res = _call("sendMessage", {
-        "chat_id": chat_id,
-        "text": caption(item) + (f"\n\n{html.escape(note)}" if note else ""),
-        "parse_mode": "HTML",
+        "chat_id": chat_id, "text": caption(item), "parse_mode": "HTML",
         "link_preview_options": _preview(item),
-        "reply_markup": {"inline_keyboard": [[
-            {"text": "✅ В канал", "callback_data": f"ok|{item['key']}"},
-            {"text": "❌ Пропустить", "callback_data": f"no|{item['key']}"},
-        ]]},
+        "reply_markup": {"inline_keyboard": rows},
     })
     return (res.get("result") or {}).get("message_id")
 
@@ -180,25 +186,34 @@ def _forward(msg):
                      or origin.get("sender_user_name") or ""}
 
 
-def updates(offset):
-    """Новое от админов -> (сообщения, нажатия [(id, data)], новый offset).
+def parse_message(msg):
+    """Сообщение Telegram -> {"chat_id", "message_id", "text", "urls", "forward", "has_video"}.
 
-    Сообщение: {"chat_id", "message_id", "text", "urls", "forward", "has_video"}.
-    Всё, что пришло не от админов, молча отбрасывается.
+    None, если оно не от админа: чужие сообщения молча отбрасываются.
+    """
+    if not msg or (msg.get("from") or {}).get("id") not in admin_ids():
+        return None
+    return {
+        "chat_id": msg["chat"]["id"], "message_id": msg.get("message_id"),
+        "text": msg.get("text") or msg.get("caption") or "",
+        "urls": _urls(msg), "forward": _forward(msg),
+        "has_video": any(k in msg for k in ("video", "animation", "video_note")),
+    }
+
+
+def updates(offset):
+    """Опрос Telegram (когда нет обработчика на Cloudflare).
+
+    -> (сообщения, нажатия [(id, data)], новый offset). Только от админов.
     """
     data = _call("getUpdates", {"offset": offset, "timeout": 0,
                                 "allowed_updates": ["message", "callback_query"]})
     msgs, taps, admins = [], [], admin_ids()
     for upd in data.get("result", []):
         offset = max(offset, upd["update_id"] + 1)
-        msg = upd.get("message") or {}
-        if (msg.get("from") or {}).get("id") in admins:
-            msgs.append({
-                "chat_id": msg["chat"]["id"], "message_id": msg.get("message_id"),
-                "text": msg.get("text") or msg.get("caption") or "",
-                "urls": _urls(msg), "forward": _forward(msg),
-                "has_video": any(k in msg for k in ("video", "animation", "video_note")),
-            })
+        parsed = parse_message(upd.get("message"))
+        if parsed:
+            msgs.append(parsed)
         cb = upd.get("callback_query") or {}
         if (cb.get("from") or {}).get("id") in admins and cb.get("data"):
             taps.append((cb["id"], cb["data"]))

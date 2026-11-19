@@ -23,9 +23,9 @@ def _check(service, r):
     return r
 
 
-def get_json(service, url, params=None):
+def get_json(service, url, params=None, headers=None):
     try:
-        r = requests.get(url, params=params, timeout=TIMEOUT, headers=UA)
+        r = requests.get(url, params=params, timeout=TIMEOUT, headers={**UA, **(headers or {})})
     except requests.RequestException as e:
         raise ApiError(service, 0, type(e).__name__) from None
     return _check(service, r).json()

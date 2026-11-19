@@ -2,8 +2,8 @@ name: feed
 
 on:
   schedule:
-    - cron: "3-59/10 * * * *"   # каждые 10 минут: быстрее доходят нажатия кнопок модерации
-  workflow_dispatch:             # и кнопкой "Run workflow"
+    - cron: "17,47 * * * *"     # запасной ход: основной запуск раз в 10 минут делает воркер (worker/)
+  workflow_dispatch:             # воркер, кнопка "Run workflow"
   push:                          # правки сайта выкладываются сразу
     branches: [main]
     paths: ["docs/**", ".github/workflows/feed.yml"]

@@ -1,4 +1,5 @@
 """Офлайн-тесты: все сетевые вызовы подменены. Запуск: python -m unittest -v"""
+import hashlib
 import json
 import os
 import tempfile
@@ -7,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 
 import config as cfg
 from feed import __main__ as app
-from feed import dedup, links, net, store, telegram, youtube
+from feed import dedup, links, net, store, telegram, worker, youtube
 
 T = datetime(2026, 11, 19, 12, 0, tzinfo=timezone.utc)
 
@@ -37,8 +38,19 @@ class Fake:
         self.delete_fails = False
         self.answers = []
         self.updates = []
+        self.polls = 0
+        self.worker_events = []
+        self.worker_down = False
+        self.acks = []
 
-    def get_json(self, service, url, params=None):
+    def get_json(self, service, url, params=None, headers=None):
+        if url.endswith("/pull"):
+            if self.worker_down:
+                raise net.ApiError("worker", 0, "ConnectionError")
+            assert headers["Authorization"] == "Bearer " + hashlib.sha256(b"sync:t").hexdigest()
+            self.acks.append(params["ack"])
+            self.worker_events = [e for e in self.worker_events if e["seq"] > params["ack"]]
+            return {"events": list(self.worker_events)}
         if url.endswith("/search"):
             self.searches += 1
             return {"items": [{"id": {"videoId": i}} for i in self.search_ids]}
@@ -50,6 +62,7 @@ class Fake:
 
     def post_json(self, service, url, payload):
         if url.endswith("/getUpdates"):
+            self.polls += 1
             return {"result": [u for u in self.updates if u["update_id"] >= payload["offset"]]}
         if url.endswith("/sendMessage"):
             if payload["chat_id"] == "@chan":
@@ -84,6 +97,8 @@ class Base(unittest.TestCase):
         store.DB_PATH = os.path.join(d, "data", "db.json")
         store.FEED_PATH = os.path.join(d, "docs", "feed.json")
         store.LINKS_PATH = os.path.join(d, "links.txt")
+        store.WORKER_URL_PATH = os.path.join(d, "data", "worker_url.txt")
+        os.environ["WORKER_URL"] = ""
         self.fake = Fake()
         self._orig = (net.get_json, net.post_json, net.get_bytes, net.resolve)
         net.get_json, net.post_json = self.fake.get_json, self.fake.post_json
@@ -477,6 +492,80 @@ class Forwards(Base):
         self.assertEqual(app.run(T), 0)
         self.assertEqual([i["status"] for i in self.db()["items"].values()], ["failed"])
         self.assertIn("запретил пересылку", self.fake.replies[-1]["text"])
+
+
+class WorkerMode(Base):
+    """Нажатия и сообщения приходят не опросом Telegram, а из очереди воркера."""
+
+    def setUp(self):
+        super().setUp()
+        cfg.MODERATION = True
+        os.environ["WORKER_URL"] = "https://bot.example.workers.dev/"
+
+    def tearDown(self):
+        os.environ["WORKER_URL"] = ""
+        super().tearDown()
+
+    def test_candidate_text_is_exactly_the_future_post(self):
+        Pipeline.seed(self)
+        app.run(T)
+        c = self.fake.candidates[0]
+        self.assertNotIn("⏳", c["text"])                          # статистика не в тексте...
+        rows = c["reply_markup"]["inline_keyboard"]
+        self.assertEqual(rows[1][0]["callback_data"], "noop")      # ...а на кнопке-подписи
+        self.assertIn("⏳", rows[1][0]["text"])
+
+    def test_taps_handled_by_worker_are_only_recorded(self):
+        Pipeline.seed(self)
+        app.run(T)
+        self.fake.worker_events = [
+            {"seq": 1, "type": "tap", "key": "yt:popular0001", "action": "ok", "posted": True, "at": 1},
+            {"seq": 2, "type": "tap", "key": "yt:freshfast01", "action": "no", "posted": False, "at": 2},
+        ]
+        app.run(T + timedelta(minutes=1))
+        items = self.db()["items"]
+        self.assertEqual(items["yt:popular0001"]["status"], "published")
+        self.assertEqual(items["yt:freshfast01"]["status"], "rejected")
+        self.assertEqual([i["id"] for i in self.feed()["items"]], ["popular0001"])
+        # воркер уже всё сделал в Telegram: сборщик не постит, не удаляет и не опрашивает
+        self.assertEqual(self.fake.posts, [])
+        self.assertEqual(self.fake.deleted, [])
+        self.assertEqual(self.fake.answers, [])
+        self.assertEqual(self.fake.polls, 0)
+        self.assertEqual(self.db()["state"]["worker_seq"], 2)
+        # подтверждение уходит воркеру только на следующем запуске
+        self.assertEqual(self.fake.acks, [0, 0])
+        app.run(T + timedelta(minutes=2))
+        self.assertEqual(self.fake.acks[-1], 2)
+        self.assertEqual(self.fake.worker_events, [])
+
+    def test_message_from_queue(self):
+        self.fake.worker_events = [
+            {"seq": 5, "type": "message", "at": 1, "message": {
+                "from": {"id": 42}, "chat": {"id": 42}, "message_id": 9,
+                "text": "https://www.instagram.com/reel/Cabc123/ Jump"}},
+            {"seq": 6, "type": "message", "at": 1, "message": {
+                "from": {"id": 666}, "chat": {"id": 666}, "message_id": 1,
+                "text": "https://www.instagram.com/reel/SPAM/"}},
+        ]
+        self.assertEqual(app.run(T), 1)
+        self.assertEqual(len(self.fake.posts), 1)
+        self.assertNotIn("ig:SPAM", self.db()["items"])
+        self.assertIn("Добавил", self.fake.replies[-1]["text"])
+
+    def test_worker_down_does_not_stop_the_run(self):
+        Pipeline.seed(self)
+        self.fake.worker_down = True
+        app.run(T)
+        self.assertEqual(len(self.fake.candidates), 2)
+        self.assertEqual(self.fake.polls, 0)
+
+    def test_url_from_file_written_by_deploy(self):
+        os.environ["WORKER_URL"] = ""
+        os.makedirs(os.path.dirname(store.WORKER_URL_PATH), exist_ok=True)
+        with open(store.WORKER_URL_PATH, "w") as f:
+            f.write("https://gta6-feed-bot.someone.workers.dev\n")
+        self.assertEqual(worker.url(), "https://gta6-feed-bot.someone.workers.dev")
 
 
 if __name__ == "__main__":

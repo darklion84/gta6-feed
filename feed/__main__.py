@@ -17,7 +17,7 @@ import re
 from datetime import timedelta
 
 import config as cfg
-from . import dedup, links, net, store, telegram, youtube
+from . import dedup, links, net, store, telegram, worker, youtube
 
 log = logging.getLogger("feed")
 RELEVANT = [re.compile(p, re.I) for p in cfg.MUST_MATCH]
@@ -153,25 +153,64 @@ def handle_message(db, t, m):
     return ["В пересланном сообщении нет ни видео, ни ссылки на ролик."]
 
 
-def handle_tap(db, t, callback_id, data):
-    """Нажатие кнопки под кандидатом."""
-    action, _, key = data.partition("|")
-    item = db["items"].get(key)
-    if not item or item.get("status") != "pending":
-        telegram.answer(callback_id, "Уже обработано")
-        if item:
-            telegram.clear(item, "Уже обработано")
+def handle_tap(db, t, tap):
+    """Нажатие кнопки под кандидатом.
+
+    tap = {"id", "action", "key", "posted"}. Если id пуст, нажатие уже
+    обработал воркер на Cloudflare (ответил админу, удалил сообщение, при
+    одобрении опубликовал в канале): нам остаётся записать итог в базу.
+    """
+    live = tap["id"] is not None
+    if tap["action"] not in ("ok", "no"):
+        if live:
+            telegram.answer(tap["id"], "")      # кнопка-подпись со статистикой
         return
-    # Сообщение с кандидатом удаляется именно здесь: его исчезновение и есть
-    # подтверждение админу, что нажатие дошло и учтено.
-    if action == "ok":
+    item = db["items"].get(tap["key"])
+    if tap["posted"]:
+        if item:                                # уже в канале, что бы ни было в базе
+            item.update(status="published", posted_at=store.iso(t), mod_msgs=[])
+            log.info("опубликован воркером: %s %s", item["key"], item.get("title", "")[:60])
+        return
+    if not item or item.get("status") != "pending":
+        if live:
+            telegram.answer(tap["id"], "Уже обработано")
+            if item:
+                telegram.clear(item, "Уже обработано")
+        return
+    if tap["action"] == "ok":
         item["status"], item["approved_at"] = "approved", store.iso(t)
-        telegram.answer(callback_id, "Принято, выйдет в канал")
-        telegram.clear(item, "✅ Одобрен")
     else:
         item["status"] = "rejected"
-        telegram.answer(callback_id, "Пропущен")
-        telegram.clear(item, "❌ Пропущен")
+    if live:
+        # Сообщение с кандидатом удаляется именно здесь: его исчезновение и есть
+        # подтверждение админу, что нажатие дошло и учтено.
+        ok = tap["action"] == "ok"
+        telegram.answer(tap["id"], "Принято, выйдет в канал" if ok else "Пропущен")
+        telegram.clear(item, "✅ Одобрен" if ok else "❌ Пропущен")
+    else:
+        item["mod_msgs"] = []
+
+
+def read_inbox(db):
+    """Новое от админа -> (сообщения, нажатия). Через воркер или опросом Telegram."""
+    st = db["state"]
+    if worker.url():
+        msgs, taps = [], []
+        for e in worker.pull(st.get("worker_seq", 0)):
+            st["worker_seq"] = max(st.get("worker_seq", 0), e["seq"])
+            if e.get("type") == "tap":
+                taps.append({"id": None, "action": e.get("action"), "key": e.get("key"),
+                             "posted": bool(e.get("posted"))})
+            elif e.get("type") == "message":
+                m = telegram.parse_message(e.get("message"))
+                if m:
+                    msgs.append(m)
+        return msgs, taps
+    msgs, raw, offset = telegram.updates(st.get("tg_offset", 0))
+    st["tg_offset"] = offset
+    taps = [{"id": cid, "action": data.partition("|")[0], "key": data.partition("|")[2],
+             "posted": False} for cid, data in raw]
+    return msgs, taps
 
 
 def collect_inbox(db, t):
@@ -187,13 +226,12 @@ def collect_inbox(db, t):
     if not (telegram.token() and telegram.admin_ids()):
         return
     try:
-        msgs, taps, offset = telegram.updates(db["state"].get("tg_offset", 0))
+        msgs, taps = read_inbox(db)
     except net.ApiError as e:
         log.warning("входящие Telegram: %s", e)
         return
-    db["state"]["tg_offset"] = offset
-    for callback_id, data in taps:
-        handle_tap(db, t, callback_id, data)
+    for tap in taps:
+        handle_tap(db, t, tap)
     for m in msgs:
         for answer in handle_message(db, t, m):
             log.info("от админа: %s", answer)

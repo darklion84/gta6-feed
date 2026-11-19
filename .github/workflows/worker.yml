@@ -1,0 +1,123 @@
+name: worker
+
+# Выкладка обработчика Telegram на Cloudflare Workers и привязка к нему бота.
+on:
+  push:
+    branches: [main]
+    paths: ["worker/**", ".github/workflows/worker.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # записать адрес воркера в data/worker_url.txt
+  actions: write    # запустить сборщик после выкладки
+
+concurrency:
+  group: worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_ADMIN_IDS: ${{ secrets.TELEGRAM_ADMIN_IDS }}
+      DISPATCH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Проверить секреты
+        id: check
+        run: |
+          missing=""
+          for v in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID TELEGRAM_BOT_TOKEN TELEGRAM_ADMIN_IDS; do
+            [ -n "${!v}" ] || missing="$missing $v"
+          done
+          if [ -n "$missing" ]; then
+            echo "::warning::Воркер не выложен, не хватает секретов:$missing"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+          [ -n "$DISPATCH_TOKEN" ] || echo "::warning::Нет DISPATCH_TOKEN: воркер не сможет сам запускать сборщик"
+
+      - uses: actions/setup-node@v4
+        if: steps.check.outputs.ready == 'true'
+        with:
+          node-version: 22
+
+      - name: Выложить воркер
+        if: steps.check.outputs.ready == 'true'
+        working-directory: worker
+        run: |
+          set -o pipefail
+          npx --yes wrangler@4 deploy 2>&1 | tee "$RUNNER_TEMP/deploy.log"
+
+      - name: Передать воркеру секреты
+        if: steps.check.outputs.ready == 'true'
+        working-directory: worker
+        run: |
+          python3 - > "$RUNNER_TEMP/secrets.json" <<'EOF'
+          import json, os
+          names = ("TELEGRAM_BOT_TOKEN", "TELEGRAM_ADMIN_IDS", "DISPATCH_TOKEN")
+          print(json.dumps({n: os.environ[n] for n in names if os.environ.get(n)}))
+          EOF
+          npx --yes wrangler@4 secret bulk "$RUNNER_TEMP/secrets.json"
+          rm -f "$RUNNER_TEMP/secrets.json"
+
+      - name: Проверить воркер и привязать к нему бота
+        if: steps.check.outputs.ready == 'true'
+        id: hook
+        run: |
+          URL=$(grep -o 'https://[a-zA-Z0-9.-]*\.workers\.dev' "$RUNNER_TEMP/deploy.log" | head -1)
+          [ -n "$URL" ] || { echo "::error::Не нашёл адрес воркера в выводе wrangler"; exit 1; }
+          echo "Воркер: $URL"
+          SYNC=$(printf 'sync:%s' "$TELEGRAM_BOT_TOKEN" | sha256sum | cut -d' ' -f1)
+          HOOK=$(printf 'hook:%s' "$TELEGRAM_BOT_TOKEN" | sha256sum | cut -d' ' -f1)
+
+          # Бота переключаем, только убедившись, что воркер отвечает и секреты до него дошли.
+          ok=""
+          for i in $(seq 1 18); do
+            OUT=$(curl -sS -m 10 -H "Authorization: Bearer $SYNC" "$URL/pull?ack=0" || true)
+            case "$OUT" in *'"events"'*) ok=1; break;; esac
+            sleep 5
+          done
+          [ -n "$ok" ] || { echo "::error::Воркер не отвечает или не получил секреты, бот не переключён"; exit 1; }
+
+          API="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}"
+          # При первом переключении сбрасываем накопившиеся обновления: часть из них сборщик
+          # уже обработал опросом, и воркер иначе опубликовал бы их повторно.
+          DROP=false
+          INFO=$(curl -sS -m 15 "$API/getWebhookInfo" || true)
+          case "$INFO" in *'"url":""'*) DROP=true;; esac
+          SET=$(curl -sS -m 15 "$API/setWebhook" \
+            --data-urlencode "url=${URL}/tg" \
+            --data-urlencode "secret_token=${HOOK}" \
+            --data-urlencode 'allowed_updates=["message","callback_query"]' \
+            --data-urlencode "drop_pending_updates=${DROP}" || true)
+          case "$SET" in
+            *'"ok":true'*) ;;
+            *) echo "::error::Telegram не принял адрес воркера: $SET"; exit 1;;
+          esac
+          echo "Бот привязан к воркеру (сброс очереди: $DROP)"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Сообщить адрес воркера сборщику
+        if: steps.check.outputs.ready == 'true'
+        env:
+          URL: ${{ steps.hook.outputs.url }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p data
+          echo "$URL" > data/worker_url.txt
+          git config user.name "feed-bot"
+          git config user.email "feed-bot@users.noreply.github.com"
+          git add data/worker_url.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "worker: record url"
+            git pull --rebase
+            git push
+          fi
+          gh workflow run feed.yml --ref main
