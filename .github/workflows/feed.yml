@@ -71,6 +71,16 @@ jobs:
         if: github.event_name != 'schedule' || steps.save.outputs.feed_changed == 'true'
         with:
           path: docs
+      # Бывает, что GitHub секунду-другую не видит только что загруженный архив сайта,
+      # и выкладка падает с "No artifacts named github-pages". Тогда ждём и пробуем ещё
+      # раз; запуск считается неудачным, только если не вышло и со второй попытки.
       - id: deploy
         if: github.event_name != 'schedule' || steps.save.outputs.feed_changed == 'true'
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Пауза перед повторной выкладкой
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 30
+      - name: Повторная выкладка
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v4
