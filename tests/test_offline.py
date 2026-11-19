@@ -107,10 +107,16 @@ class Units(Base):
         self.assertTrue(ok("GTA VI funny moment"))
         self.assertTrue(ok("Insane stunt #gta6 #shorts"))
         self.assertTrue(ok("ГТА 6 приколы"))
-        self.assertTrue(ok("wow", tags=["grand theft auto vi"]))
+        self.assertTrue(ok("Cop chase gone wrong", tags=["grand theft auto vi"]))
+        self.assertTrue(ok("Peak GTA 6 NPC Moment😂 #shorts"))
+        self.assertTrue(ok("MAN WHAT THE HECK 😭 #gta6 #funnymoments"))
         self.assertFalse(ok("GTA Vice City best mission"))
         self.assertFalse(ok("GTA 5 online heist"))
-        self.assertFalse(ok("GTA 6 trailer 3 reaction"))
+        self.assertFalse(ok("GTA 6 trailer 3 funny reaction"))
+        # хайп и мемы вокруг игры, а не моменты из неё
+        self.assertFalse(ok("GTA 6 IS HERE 🥹"))
+        self.assertFalse(ok("GTA 6 comes out but you have school tomorrow #roblox #funny"))
+        self.assertFalse(ok("Comment which one is from GTA 6 #gta6 #memes #funny"))
 
     def test_dedup_rules(self):
         a = {"key": "yt:a", "title": "GTA 6 cop flips car lol #shorts", "duration": 40}
@@ -149,8 +155,8 @@ class Pipeline(Base):
             "popular0001": vid("popular0001", "GTA 6 cop flips car lol #shorts", 500_000, 20),
             "toolong0001": vid("toolong0001", "GTA 6 full mission", 900_000, 10, duration=120),
             "reupload001": vid("reupload001", "GTA 6 Cop Flips Car LOL", 300_000, 5, channel="UC2"),
-            "freshfast01": vid("freshfast01", "GTA VI alligator steals boat", 20_000, 2, duration=30, channel="UC3"),
-            "freshslow01": vid("freshslow01", "GTA 6 walking around", 800, 2, duration=30, channel="UC4"),
+            "freshfast01": vid("freshfast01", "GTA VI alligator steals boat, funny", 20_000, 2, duration=30, channel="UC3"),
+            "freshslow01": vid("freshslow01", "GTA 6 walking around NPC", 800, 2, duration=30, channel="UC4"),
             "vicecity001": vid("vicecity001", "GTA Vice City nostalgia", 999_999, 3, channel="UC5"),
         }
         f.search_ids = list(f.videos)

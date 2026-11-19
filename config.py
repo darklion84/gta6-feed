@@ -34,10 +34,24 @@ MUST_MATCH = [
     r"\bгта\s*6\b",
 ]
 
+# В НАЗВАНИИ должно быть хотя бы одно из этих выражений (регулярки). Так
+# отсекаются мемы, новости и хайп вокруг игры: остаются ролики, похожие на
+# моменты из самой игры. Пустой список = не проверять.
+TITLE_HINTS = [
+    r"\bfunn(y|iest)", r"\bmoments?\b", r"\bnpcs?\b", r"\bglitch", r"\bbugs?\b",
+    r"\bfails?\b", r"\bstunts?\b", r"\bphysics\b", r"\bwtf\b", r"\blol\b",
+    r"\bcops?\b", r"\bpolice\b", r"\bchase", r"\bcrash", r"\bragdoll",
+    r"\bgameplay\b", r"\bclips?\b", r"\bhighlights?\b", r"easter egg",
+    r"прикол", r"момент",
+]
+
 # Если в НАЗВАНИИ есть одно из этих слов, ролик отбрасывается.
 STOP_WORDS = [
     "trailer", "трейлер", "leak", "concept", "fan made", "fanmade",
     "countdown", "release date", "дата выхода",
+    "roblox", "minecraft", "fortnite", "pubg", "free fire",
+    "meme", "comment ", "pre-order", "preorder", "delay", "coming soon",
+    "comes out", "hours until", "game awards", "unboxing", "ranking",
 ]
 
 SEARCH_LANGUAGE = "en"       # какой язык поиск ставит выше; остальные не отсекаются. "" = без приоритета

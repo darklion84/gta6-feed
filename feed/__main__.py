@@ -16,17 +16,23 @@ from . import dedup, links, net, store, telegram, youtube
 
 log = logging.getLogger("feed")
 RELEVANT = [re.compile(p, re.I) for p in cfg.MUST_MATCH]
+HINTS = [re.compile(p, re.I) for p in cfg.TITLE_HINTS]
 
 
 # --- отбор -------------------------------------------------------------------
 
+def title_ok(title):
+    """Название похоже на момент из игры и без стоп-слов."""
+    low = (title or "").lower()
+    if any(w in low for w in cfg.STOP_WORDS):
+        return False
+    return not HINTS or any(p.search(low) for p in HINTS)
+
+
 def is_relevant(v):
     text = " ".join([v.get("title", ""), v.get("description", "")[:500],
                      " ".join(v.get("tags", []))])
-    if not any(p.search(text) for p in RELEVANT):
-        return False
-    title = v.get("title", "").lower()
-    return not any(w in title for w in cfg.STOP_WORDS)
+    return any(p.search(text) for p in RELEVANT) and title_ok(v.get("title"))
 
 
 def accept(v):
@@ -198,9 +204,12 @@ def refresh_stats(db, t, skip):
         except net.ApiError as e:
             log.warning("статистика не обновлена: %s", e)
     for i in db["items"].values():
-        if (i["status"] == "new" and i.get("source") != "manual"
-                and store.hours_since(i["published_at"], t) > cfg.SEARCH_WINDOW_HOURS):
+        if i["status"] != "new" or i.get("source") == "manual":
+            continue
+        if store.hours_since(i["published_at"], t) > cfg.SEARCH_WINDOW_HOURS:
             i["status"] = "expired"
+        elif not title_ok(i.get("title")):
+            i["status"] = "rejected"     # фильтры в config.py ужесточили уже после находки
 
 
 # --- 4. публикация ---------------------------------------------------------------
@@ -248,8 +257,8 @@ def publish(db, t):
                 telegram.post(item)
             except net.ApiError as e:
                 log.warning("пост не отправлен (%s): %s", item["key"], e)
-                if e.status == 429:
-                    break
+                if e.status in (401, 403, 429):
+                    break   # неверный токен, бот не админ канала или лимит: дальше пробовать бессмысленно
                 continue
         item["status"], item["posted_at"] = "published", store.iso(t)
         published.append(item)
