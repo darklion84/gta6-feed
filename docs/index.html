@@ -118,6 +118,10 @@
   // звука, поэтому YouTube стартует с выключенным звуком (включается касанием).
   // false = ничего не запускать, пока зритель сам не нажмёт play.
   var AUTOPLAY = true;
+  // Когда ролик доиграл, лента сама переходит к следующему (YouTube и TikTok
+  // сообщают о конце ролика; Instagram и Telegram нет, там ролик просто
+  // останавливается). false = остановиться и ждать зрителя.
+  var AUTONEXT = true;
 
   var NAMES = { yt: 'YouTube', tt: 'TikTok', ig: 'Instagram', tg: 'Telegram' };
   var all = [], filter = 'all', meta = {}, active = null;
@@ -126,11 +130,12 @@
   function embedUrl(it) {
     var id = encodeURIComponent(it.id);
     if (it.platform === 'yt') {
-      return 'https://www.youtube.com/embed/' + id + '?playsinline=1&rel=0&loop=1&playlist=' + id +
+      return 'https://www.youtube.com/embed/' + id + '?playsinline=1&rel=0&enablejsapi=1' +
+             '&origin=' + encodeURIComponent(location.origin) +
              (AUTOPLAY ? '&autoplay=1&mute=1' : '');
     }
     if (it.platform === 'tt') {
-      return 'https://www.tiktok.com/player/v1/' + id + '?rel=0&description=0&music_info=0&loop=1' +
+      return 'https://www.tiktok.com/player/v1/' + id + '?rel=0&description=0&music_info=0' +
              (AUTOPLAY ? '&autoplay=1' : '');
     }
     if (it.platform === 'ig') return 'https://www.instagram.com/reel/' + id + '/embed/';
@@ -172,7 +177,50 @@
     f.allowFullscreen = true;
     f.referrerPolicy = 'strict-origin-when-cross-origin';
     box.appendChild(f);
+    if (box.classList.contains('yt')) subscribeYouTube(f);
   }
+
+  // Плеер YouTube начинает сообщать о своём состоянии только после "подписки".
+  // Он может быть ещё не готов, поэтому повторяем её несколько секунд.
+  function subscribeYouTube(frame) {
+    var tries = 0;
+    var timer = setInterval(function () {
+      if (!frame.isConnected || frame.dataset.heard || ++tries > 20) { clearInterval(timer); return; }
+      try {
+        frame.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }),
+                                        'https://www.youtube.com');
+        frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'addEventListener',
+                                                         args: ['onStateChange'], id: 1, channel: 'widget' }),
+                                        'https://www.youtube.com');
+      } catch (e) { /* плеер ещё грузится */ }
+    }, 500);
+  }
+
+  // -> true, если сообщение от плеера означает "ролик доиграл до конца"
+  function isEnded(origin, raw) {
+    var d = raw;
+    if (typeof raw === 'string') { try { d = JSON.parse(raw); } catch (e) { return false; } }
+    if (!d || typeof d !== 'object') return false;
+    if (origin === 'https://www.youtube.com') {
+      if (d.event === 'onStateChange') return d.info === 0;
+      if (d.event === 'infoDelivery') return !!d.info && d.info.playerState === 0;
+      return false;
+    }
+    if (origin === 'https://www.tiktok.com') {
+      return d['x-tiktok-player'] === true && d.type === 'onStateChange' && d.value === 0;
+    }
+    return false;
+  }
+
+  window.addEventListener('message', function (e) {
+    var frame = active && active.querySelector('iframe');
+    if (!frame || e.source !== frame.contentWindow) return;   // слушаем только ролик на экране
+    frame.dataset.heard = '1';
+    if (AUTONEXT && !frame.dataset.ended && isEnded(e.origin, e.data)) {
+      frame.dataset.ended = '1';
+      go(active, 1);
+    }
+  });
   function unmount(slide) {
     var f = slide.querySelector('iframe');
     if (f) f.remove();
