@@ -201,13 +201,18 @@ async function handleMessage(env, queue, m) {
     await tg(env, "sendMessage", { chat_id: m.chat.id, text: HELP });
     return;
   }
-  await queue.push({ type: "message", message: m, at: Math.floor(Date.now() / 1000) });
-  await queue.kick(false);
-  await tg(env, "sendMessage", {
+  // Сборщик удалит и это подтверждение, и само сообщение админа, как только
+  // ролик выйдет в канале. Поэтому номер подтверждения едет в очередь вместе с ним.
+  const ack = await tg(env, "sendMessage", {
     chat_id: m.chat.id,
-    text: "Принял, обрабатываю. Отвечу через минуту-две.",
+    text: "Принял. Как только опубликую, уберу и это сообщение, и ваше.",
     reply_parameters: { message_id: m.message_id, allow_sending_without_reply: true },
   });
+  await queue.push({
+    type: "message", message: m, at: Math.floor(Date.now() / 1000),
+    ack_id: ack.ok && ack.result ? ack.result.message_id : null,
+  });
+  await queue.kick(false);
 }
 
 async function handleUpdate(env, queue, upd) {

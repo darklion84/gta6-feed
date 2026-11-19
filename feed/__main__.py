@@ -103,11 +103,15 @@ HELP = ("Пришлите ссылку на ролик (YouTube, TikTok, Instagr
 
 
 def add_manual(db, t, parsed, title, extra=None):
-    """Ролик, выбранный админом: сразу в очередь на публикацию. -> текст ответа."""
+    """Ролик, выбранный админом: сразу в очередь на публикацию.
+
+    -> (итог, текст). Итог: "added" (всё хорошо, писать админу нечего),
+    "note" (добавлен, но есть важная оговорка), "error" (не добавлен).
+    """
     key = links.key(parsed)
     old = db["items"].get(key)
     if old and old["status"] in ("published", "approved"):
-        return "Этот ролик уже есть в ленте или в очереди."
+        return "error", "Этот ролик уже есть в ленте или в очереди."
     item = {**parsed, "key": key, "title": title, "author": "", "channel_id": "",
             "published_at": store.iso(t), "duration": 0, "views": 0, "likes": 0,
             "status": "new", "source": "manual", "found_at": store.iso(t)}
@@ -127,25 +131,28 @@ def add_manual(db, t, parsed, title, extra=None):
     item.update(extra or {})
     db["items"][key] = item
     if parsed["platform"] == "tgx":
-        return ("Добавил в очередь. Выйдет только в канале: источник закрытый, "
-                "встроить его пост на сайт нельзя.")
-    return f"Добавил в очередь: {links.NAMES[parsed['platform']]} {parsed['id']}"
+        return "note", ("Опубликую только в канале: источник закрытый, "
+                        "встроить его пост на сайт нельзя.")
+    return "added", f"добавлен {links.NAMES[parsed['platform']]} {parsed['id']}"
 
 
 def handle_message(db, t, m):
-    """Сообщение админа боту: ссылки или пересланный пост. -> тексты ответов."""
+    """Сообщение админа боту: ссылки или пересланный пост. -> [(итог, текст)], см. add_manual."""
     parsed = [p for p in (links.parse(u) for u in m["urls"]) if p]
     fwd = m["forward"]
+    # После публикации из лички убираются и само сообщение админа, и ответ "Принял".
+    tidy = {"cleanup": {"src": [m["chat_id"], m["message_id"]],
+                        "ack": [m["chat_id"], m.get("ack_id")]}}
     if not fwd:
         if not parsed:
-            return ["Не распознал ссылку. " + HELP if m["urls"] else HELP]
+            return [("error", "Не распознал ссылку. " + HELP if m["urls"] else HELP)]
         title = links.URL.sub(" ", m["text"]).strip(" |\n\t")
-        return [add_manual(db, t, p, title) for p in parsed]
+        return [add_manual(db, t, p, title, tidy) for p in parsed]
     # Пересылка. Сначала ищем в посте ссылку на первоисточник во внешней сети,
     # затем берём сам пост с видео, затем ссылку на другой пост Telegram.
     external = [p for p in parsed if p["platform"] != "tg"]
     if external:
-        return [add_manual(db, t, external[0], "")]
+        return [add_manual(db, t, external[0], "", tidy)]
     if m["has_video"]:
         if fwd["username"] and fwd["post_id"]:
             post = links.tg_post(fwd["username"], fwd["post_id"])
@@ -153,10 +160,10 @@ def handle_message(db, t, m):
             post = {"platform": "tgx", "id": f"{m['chat_id']}_{m['message_id']}", "url": ""}
         lines = [s.strip() for s in links.URL.sub(" ", m["text"]).splitlines() if s.strip()]
         return [add_manual(db, t, post, lines[0][:120] if lines else "",
-                           {"author": fwd["title"], "fwd": [m["chat_id"], m["message_id"]]})]
+                           {"author": fwd["title"], "fwd": [m["chat_id"], m["message_id"]], **tidy})]
     if parsed:
-        return [add_manual(db, t, parsed[0], "")]
-    return ["В пересланном сообщении нет ни видео, ни ссылки на ролик."]
+        return [add_manual(db, t, parsed[0], "", tidy)]
+    return [("error", "В пересланном сообщении нет ни видео, ни ссылки на ролик.")]
 
 
 def handle_tap(db, t, tap):
@@ -221,6 +228,7 @@ def read_inbox(db):
             elif e.get("type") == "message":
                 m = telegram.parse_message(e.get("message"))
                 if m:
+                    m["ack_id"] = e.get("ack_id")   # ответ "Принял", который отправил воркер
                     msgs.append(m)
         return msgs, taps
     msgs, raw, offset = telegram.updates(st.get("tg_offset", 0))
@@ -237,7 +245,7 @@ def collect_inbox(db, t):
     for url, title in in_file:
         if url not in done:
             parsed = links.parse(url)
-            log.info("links.txt: %s", add_manual(db, t, parsed, title) if parsed
+            log.info("links.txt: %s", add_manual(db, t, parsed, title)[1] if parsed
                      else f"не распознал {url}")
     db["state"]["links_done"] = sorted({u for u, _ in in_file})
     if not (telegram.token() and telegram.admin_ids()):
@@ -250,9 +258,15 @@ def collect_inbox(db, t):
     for tap in taps:
         handle_tap(db, t, tap)
     for m in msgs:
-        for answer in handle_message(db, t, m):
-            log.info("от админа: %s", answer)
-            telegram.reply(m["chat_id"], answer)
+        results = handle_message(db, t, m)
+        for outcome, text in results:
+            log.info("от админа: %s", text)
+            if outcome != "added":
+                telegram.reply(m["chat_id"], text)   # ошибка или оговорка остаётся в чате
+        if not any(outcome != "error" for outcome, _ in results):
+            # ничего не добавлено: "Принял" больше не нужен, а сообщение админа
+            # остаётся рядом с объяснением, что с ним не так
+            telegram.delete(m["chat_id"], m.get("ack_id"))
 
 
 # --- 2. поиск на YouTube -------------------------------------------------------
@@ -353,6 +367,7 @@ def post(item, t):
             item["post_fails"] = item.get("post_fails", 0) + 1
             if item.get("fwd") or item["post_fails"] >= 3:
                 item["status"] = "failed"
+                telegram.delete(*item.pop("cleanup", {}).get("ack", [None, None]))
                 if item.get("fwd"):
                     telegram.reply(item["fwd"][0], "Не удалось переслать пост в канал: "
                                                    "похоже, источник запретил пересылку.")
@@ -362,6 +377,9 @@ def post(item, t):
                                                 f"{item.get('title') or item['url']}")
             return "skip"
     item["status"], item["posted_at"] = "published", store.iso(t)
+    # Ролик в канале: убираем из лички сообщение админа со ссылкой и ответ "Принял".
+    for chat_id, message_id in item.pop("cleanup", {}).values():
+        telegram.delete(chat_id, message_id)
     log.info("опубликован: %s %s", item["key"], item.get("title", "")[:60])
     return "ok"
 

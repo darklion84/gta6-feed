@@ -277,7 +277,7 @@ class Pipeline(Base):
         self.assertEqual(items["tt:7300000000000000001"]["author"], "rider")
         self.assertEqual(items["ig:Cabc123"]["title"], "Прыжок с небоскрёба")
         self.assertNotIn("ig:SPAM", items)                 # чужим нельзя
-        self.assertEqual(len(self.fake.replies), 2)        # "добавил" и "пришлите ссылку"
+        self.assertEqual(len(self.fake.replies), 1)        # только подсказка на "привет"
         self.assertEqual(self.db()["state"]["tg_offset"], 13)
         # повторный проход ничего не дублирует
         self.assertEqual(app.run(T + timedelta(minutes=30)), 0)
@@ -637,10 +637,37 @@ class WorkerMode(Base):
                 "from": {"id": 666}, "chat": {"id": 666}, "message_id": 1,
                 "text": "https://www.instagram.com/reel/SPAM/"}},
         ]
+        self.fake.worker_events[0]["ack_id"] = 77
         self.assertEqual(app.run(T), 1)
         self.assertEqual(len(self.fake.posts), 1)
         self.assertNotIn("ig:SPAM", self.db()["items"])
-        self.assertIn("Добавил", self.fake.replies[-1]["text"])
+        # ролик вышел: в личке не остаётся ни ссылки админа, ни "Принял", ни отчёта
+        self.assertCountEqual(self.fake.deleted, [(42, 9), (42, 77)])
+        self.assertEqual(self.fake.replies, [])
+        self.assertNotIn("cleanup", self.db()["items"]["ig:Cabc123"])
+
+    def test_rejected_message_keeps_the_explanation(self):
+        self.fake.worker_events = [{"seq": 1, "type": "message", "at": 1, "ack_id": 77, "message": {
+            "from": {"id": 42}, "chat": {"id": 42}, "message_id": 9, "text": "https://example.com/video"}}]
+        self.assertEqual(app.run(T), 0)
+        self.assertEqual(self.fake.deleted, [(42, 77)])            # "Принял" убран...
+        self.assertIn("Не распознал", self.fake.replies[-1]["text"])   # ...а причина и сама ссылка остались
+
+    def test_cleanup_waits_until_the_clip_is_really_posted(self):
+        self.fake.worker_events = [{"seq": 1, "type": "message", "at": 1, "ack_id": 77, "message": {
+            "from": {"id": 42}, "chat": {"id": 42}, "message_id": 9,
+            "text": "https://www.instagram.com/reel/Cabc123/"}}]
+        real = self.fake.post_json
+        def flaky(service, url, payload):
+            if url.endswith("/sendMessage") and payload["chat_id"] == "@chan":
+                raise net.ApiError("telegram", 429, "Too Many Requests")
+            return real(service, url, payload)
+        net.post_json = flaky
+        self.assertEqual(app.run(T), 0)
+        self.assertEqual(self.fake.deleted, [])                    # не вышел: ничего не трогаем
+        net.post_json = real
+        self.assertEqual(app.run(T + timedelta(minutes=1)), 1)
+        self.assertCountEqual(self.fake.deleted, [(42, 9), (42, 77)])
 
     def test_worker_down_does_not_stop_the_run(self):
         Pipeline.seed(self)

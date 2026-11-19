@@ -131,6 +131,16 @@ def mark(item, note):
             pass
 
 
+def delete(chat_id, message_id):
+    """Удалить сообщение в личке с админом (своё или его). Молча, если уже удалено."""
+    if not message_id:
+        return
+    try:
+        _call("deleteMessage", {"chat_id": chat_id, "message_id": message_id})
+    except net.ApiError:
+        pass
+
+
 def clear(item, note):
     """Убрать сообщения-кандидаты из лички админа: решение принято.
 
