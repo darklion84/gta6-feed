@@ -354,7 +354,10 @@
   function share(it) {
     var url = new URL(it.page || ('#' + it.platform + '-' + it.id), document.baseURI).href;
     var title = it.title || document.title;
-    if (navigator.share) {
+    // На телефоне открываем системное меню "Поделиться" (там есть и мессенджеры, и
+    // "Скопировать"). На компьютере такое меню бесполезно, поэтому просто копируем ссылку.
+    var touch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    if (touch && navigator.share) {
       navigator.share({ title: title, url: url }).catch(function () { /* закрыли окно: ничего страшного */ });
     } else if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(url).then(function () { toast('Link copied'); },
