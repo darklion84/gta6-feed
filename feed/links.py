@@ -3,7 +3,10 @@ import re
 
 from . import net
 
-NAMES = {"yt": "YouTube", "tt": "TikTok", "ig": "Instagram"}
+# tg = пост публичного Telegram-канала (встраивается на сайт),
+# tgx = пересланное из закрытого источника (только в канал, на сайт не попадает)
+NAMES = {"yt": "YouTube", "tt": "TikTok", "ig": "Instagram", "tg": "Telegram", "tgx": "Telegram"}
+SITE_PLATFORMS = ("yt", "tt", "ig", "tg")
 
 _YT = re.compile(
     r"(?:youtube\.com/(?:shorts/|embed/|live/|watch\?(?:[^#\s]*&)?v=)|youtu\.be/)([\w-]{11})(?![\w-])")
@@ -11,6 +14,7 @@ _TT = re.compile(r"tiktok\.com/(@[\w.-]+)/video/(\d+)")
 _TT_PLAYER = re.compile(r"tiktok\.com/player/v1/(\d+)")
 _TT_SHORT = re.compile(r"https?://(?:(?:vm|vt)\.tiktok\.com/\w+|(?:www\.)?tiktok\.com/t/\w+)")
 _IG = re.compile(r"instagram\.com/(?:[\w.]+/)?(?:reels?|p|tv)/([\w-]+)")
+_TG = re.compile(r"(?:t|telegram)\.me/(?:s/)?([A-Za-z]\w{3,31})/(\d+)(?!\w)")
 
 URL = re.compile(r"https?://\S+")
 
@@ -36,7 +40,15 @@ def parse(url):
     if m:
         return {"platform": "ig", "id": m.group(1),
                 "url": f"https://www.instagram.com/reel/{m.group(1)}/"}
+    m = _TG.search(url)
+    if m:
+        return tg_post(m.group(1), m.group(2))
     return None
+
+
+def tg_post(username, message_id):
+    return {"platform": "tg", "id": f"{username}/{message_id}",
+            "url": f"https://t.me/{username}/{message_id}"}
 
 
 def key(parsed):

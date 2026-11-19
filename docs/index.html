@@ -55,6 +55,7 @@
     display: flex; align-items: center; justify-content: center;
   }
   .player.ig { aspect-ratio: 9 / 19; background: #fff; }
+  .player.tg { aspect-ratio: 9 / 14; background: #17212b; }
   .player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   .ph { color: #5d5470; font-size: 14px; text-align: center; padding: 0 20px; }
   .info { padding: 12px 14px 14px; }
@@ -94,6 +95,7 @@
       <button class="chip" data-p="yt" aria-pressed="false">YouTube</button>
       <button class="chip" data-p="tt" aria-pressed="false">TikTok</button>
       <button class="chip" data-p="ig" aria-pressed="false">Instagram</button>
+      <button class="chip" data-p="tg" aria-pressed="false">Telegram</button>
     </div>
   </div>
 </header>
@@ -114,7 +116,7 @@
 (function () {
   'use strict';
   var PAGE = 12;
-  var NAMES = { yt: 'YouTube', tt: 'TikTok', ig: 'Instagram' };
+  var NAMES = { yt: 'YouTube', tt: 'TikTok', ig: 'Instagram', tg: 'Telegram' };
   var all = [], filter = 'all', shown = PAGE;
   var grid = document.getElementById('grid');
   var more = document.getElementById('more');
@@ -125,6 +127,8 @@
     if (it.platform === 'yt') return 'https://www.youtube.com/embed/' + id + '?playsinline=1&rel=0';
     if (it.platform === 'tt') return 'https://www.tiktok.com/player/v1/' + id + '?rel=0&description=0&music_info=0';
     if (it.platform === 'ig') return 'https://www.instagram.com/reel/' + id + '/embed/';
+    // пост публичного Telegram-канала: id вида "channel/123"
+    if (it.platform === 'tg' && /^[A-Za-z]\w{3,31}\/\d+$/.test(it.id)) return 'https://t.me/' + it.id + '?embed=1&dark=1';
     return null;
   }
 
