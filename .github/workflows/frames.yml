@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   frames:
@@ -22,8 +22,15 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: python tools/frames.py frames_out
-      - uses: actions/upload-artifact@v4
-        with:
-          name: frames
-          path: frames_out
-          retention-days: 1
+      # Листы кладутся во временную ветку frames-tmp: её забирают для оценки и сразу удаляют.
+      - name: Временная ветка с листами
+        run: |
+          cd frames_out
+          git init -q -b frames-tmp
+          git config user.name "feed-bot"
+          git config user.email "feed-bot@users.noreply.github.com"
+          git add -A
+          git commit -q -m "frames (temporary)"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" frames-tmp
+        env:
+          GH_TOKEN: ${{ github.token }}
