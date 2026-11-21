@@ -7,7 +7,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 import config as cfg
-from feed import topics, __main__ as app
+from feed import topics, vision, __main__ as app
 from feed import dedup, links, net, store, telegram, worker, youtube
 
 T = datetime(2026, 11, 19, 12, 0, tzinfo=timezone.utc)
@@ -20,7 +20,7 @@ def vid(id_, title, views, age_h, duration=40, channel="UC1", **kw):
                 "publishedAt": store.iso(T - timedelta(hours=age_h)),
                 "liveBroadcastContent": "none"},
             "contentDetails": {"duration": f"PT{duration}S"},
-            "statistics": {"viewCount": str(views), "likeCount": "10", "commentCount": "3"}}
+            "statistics": {"viewCount": str(views), "likeCount": str(kw.get("likes", 10)), "commentCount": "3"}}
 
 
 class Fake:
@@ -45,6 +45,8 @@ class Fake:
         self.sent = []              # запросы в другие сети: (адрес, содержимое)
         self.social_error = None    # (кусок адреса, ошибка): чем отвечать на такие запросы
         self.thumbs = 0
+        self.sent_headers = []
+        self.verdicts = {}          # кусок названия -> ответ модели о кадрах (по умолчанию clean)
 
     def get_json(self, service, url, params=None, headers=None):
         if url.endswith("/pull"):
@@ -73,8 +75,17 @@ class Fake:
 
     def send(self, service, url, *, json=None, data=None, body=None, headers=None):
         self.sent.append((url, json if json is not None else data if data is not None else body))
+        self.sent_headers.append(headers or {})
         if self.social_error and self.social_error[0] in url:
             raise self.social_error[1]
+        if "api.anthropic.com" in url or "generativelanguage.googleapis.com" in url:
+            text = str(json)
+            verdict = next((v for part, v in self.verdicts.items() if part in text), "clean")
+            answer = verdict if verdict.startswith("{") or verdict == "garbage" else \
+                '{"verdict": "%s", "why": "test"}' % verdict
+            if "anthropic" in url:
+                return {"content": [{"type": "text", "text": "Here you go:\n" + answer}]}
+            return {"candidates": [{"content": {"parts": [{"text": answer}]}}]}
         if url.endswith("createSession"):
             return {"did": "did:plc:me", "accessJwt": "jwt"}
         if url.endswith("uploadBlob"):
@@ -136,7 +147,8 @@ class Base(unittest.TestCase):
         self._orig = (net.get_json, net.post_json, net.get_bytes, net.resolve)
         self._send = net.send
         net.send = self.fake.send
-        for name in ("BLUESKY_HANDLE", "BLUESKY_APP_PASSWORD", "THREADS_TOKEN"):
+        for name in ("BLUESKY_HANDLE", "BLUESKY_APP_PASSWORD", "THREADS_TOKEN",
+                     "ANTHROPIC_API_KEY", "GEMINI_API_KEY"):
             os.environ[name] = ""
         net.get_json, net.post_json = self.fake.get_json, self.fake.post_json
         net.get_bytes = lambda service, url: None
@@ -146,10 +158,11 @@ class Base(unittest.TestCase):
         self._cfg = {k: getattr(cfg, k) for k in (
             "MODERATION", "POPULAR_MIN_VIEWS", "FRESH_MAX_AGE_HOURS",
             "FRESH_MIN_VIEWS", "FRESH_MIN_VELOCITY", "TOP_ENABLED", "MAX_POSTS_PER_RUN",
-            "SOCIAL_MAX_PER_RUN", "THREADS_REFRESH_DAYS")}
+            "SOCIAL_MAX_PER_RUN", "THREADS_REFRESH_DAYS", "AUTO_MODE", "AUTO_MAX_PER_DAY")}
         # тесты не должны зависеть от того, как настроен боевой config.py
         cfg.MODERATION = False
         cfg.TOP_ENABLED = False     # подборку дня проверяет отдельный набор тестов
+        cfg.AUTO_MODE = False       # автоматический режим тоже
         cfg.POPULAR_MIN_VIEWS, cfg.FRESH_MAX_AGE_HOURS = 100_000, 6
         cfg.FRESH_MIN_VIEWS, cfg.FRESH_MIN_VELOCITY = 5_000, 2_000
 
@@ -158,7 +171,8 @@ class Base(unittest.TestCase):
             setattr(cfg, k, v)
         net.get_json, net.post_json, net.get_bytes, net.resolve = self._orig
         net.send = self._send
-        for name in ("BLUESKY_HANDLE", "BLUESKY_APP_PASSWORD", "THREADS_TOKEN"):
+        for name in ("BLUESKY_HANDLE", "BLUESKY_APP_PASSWORD", "THREADS_TOKEN",
+                     "ANTHROPIC_API_KEY", "GEMINI_API_KEY"):
             os.environ[name] = ""
         self.tmp.cleanup()
 
@@ -1129,3 +1143,190 @@ class TopicRepeats(Base):
         self.assertEqual(topics.repeat(b, [a], T + timedelta(hours=cfg.TOPIC_WINDOW_HOURS - 1)), "yt:a")
         self.assertIsNone(topics.repeat(b, [a], T + timedelta(hours=cfg.TOPIC_WINDOW_HOURS + 1)))
         self.assertIsNone(topics.repeat({"key": "yt:c", "title": "GTA 6 NPC fail", "status": "new"}, [a], T))
+
+
+def jpeg(seed):
+    """Настоящий кадр: шум, свой у каждого ролика, и файл больше заглушки YouTube."""
+    import io
+    import random
+    from PIL import Image
+    rnd = random.Random(seed)
+    im = Image.new("RGB", (90, 160))
+    im.putdata([(rnd.randrange(256), rnd.randrange(256), rnd.randrange(256)) for _ in range(90 * 160)])
+    buf = io.BytesIO()
+    im.save(buf, "JPEG", quality=90)
+    return buf.getvalue()
+
+
+class AutoMode(Base):
+    """Автоматический режим: ролик выходит сам, если модератор его не пропустил."""
+
+    def setUp(self):
+        super().setUp()
+        cfg.MODERATION, cfg.AUTO_MODE = True, True
+        os.environ["ANTHROPIC_API_KEY"] = "sk-test"
+        net.get_bytes = lambda service, url: jpeg(url.split("/vi/")[1].split("/")[0])
+        f = self.fake
+        # отлежавшийся ролик с хорошей долей лайков: 30 на 1000 просмотров
+        f.videos = {"goodclip001": vid("goodclip001", "GTA 6 NPC road rage funny moment alpha", 200_000, 7,
+                                       duration=31, channel="UC1", likes=6_000)}
+        f.search_ids = list(f.videos)
+
+    def note(self, n=-1):
+        return self.fake.candidates[n]["reply_markup"]["inline_keyboard"][1][0]["text"]
+
+    def asked(self):
+        return [body for url, body in self.fake.sent if "anthropic" in url or "googleapis" in url]
+
+    def test_clip_goes_out_by_itself_after_the_veto_window(self):
+        self.assertEqual(app.run(T), 0)
+        self.assertEqual(self.fake.posts, [])
+        self.assertEqual(len(self.fake.candidates), 1)             # модератор видит кандидата с кнопками
+        self.assertIn("🤖 выйдет сам в 15:00", self.note())        # 12:00 UTC + 2 часа, по Праге
+        self.assertIn("👍 30/1000", self.note())
+        item = self.db()["items"]["yt:goodclip001"]
+        self.assertEqual(item["status"], "pending")
+        self.assertEqual(item["auto_at"], store.iso(T + timedelta(hours=cfg.AUTO_VETO_HOURS)))
+        self.assertEqual(item["vision"]["verdict"], "clean")
+        self.assertEqual(app.run(T + timedelta(hours=1)), 0)       # время не вышло
+        self.assertEqual(app.run(T + timedelta(hours=2, minutes=1)), 1)
+        item = self.db()["items"]["yt:goodclip001"]
+        self.assertEqual(item["status"], "published")
+        self.assertTrue(item["auto"])
+        self.assertEqual(len(self.fake.posts), 1)
+        self.assertEqual(self.fake.deleted, [(42, 1001)])          # сообщение с кнопками убрано
+        self.assertEqual(len(self.asked()), 1)                     # модель спрашивали один раз
+        self.assertEqual([i["id"] for i in self.feed()["items"]], ["goodclip001"])
+
+    def test_request_to_the_model(self):
+        app.run(T)
+        body = self.asked()[0]
+        self.assertEqual(body["model"], cfg.VISION_ANTHROPIC_MODEL)
+        image, text = body["messages"][0]["content"]
+        self.assertEqual(image["source"]["media_type"], "image/jpeg")
+        self.assertGreater(len(image["source"]["data"]), 1000)
+        self.assertIn("GTA 6 NPC road rage funny moment alpha", text["text"])
+        headers = next(h for h in self.fake.sent_headers if "x-api-key" in h)
+        self.assertEqual(headers, {"x-api-key": "sk-test", "anthropic-version": "2023-06-01"})
+
+    def test_moderator_can_veto(self):
+        app.run(T)
+        Moderation.tap(self, 20, "no", "yt:goodclip001")
+        app.run(T + timedelta(minutes=30))
+        self.assertEqual(self.db()["items"]["yt:goodclip001"]["status"], "rejected")
+        self.assertEqual(app.run(T + timedelta(hours=3)), 0)
+        self.assertEqual(self.fake.posts, [])
+
+    def test_moderator_can_publish_right_away(self):
+        app.run(T)
+        Moderation.tap(self, 20, "ok", "yt:goodclip001")
+        self.assertEqual(app.run(T + timedelta(minutes=30)), 1)
+        self.assertEqual(app.run(T + timedelta(hours=3)), 0)       # второй раз сам не выходит
+        self.assertEqual(len(self.fake.posts), 1)
+        self.assertNotIn("auto", self.db()["items"]["yt:goodclip001"])
+
+    def test_young_and_unloved_clips_wait(self):
+        f = self.fake
+        f.videos = {
+            "tooyoung001": vid("tooyoung001", "GTA 6 stunt fail funny bravo", 200_000, 3, duration=22, channel="UC2", likes=8_000),
+            "nolikes0001": vid("nolikes0001", "GTA 6 police chase funny charlie", 200_000, 8, duration=44, channel="UC3", likes=1_000),
+        }
+        f.search_ids = list(f.videos)
+        app.run(T)
+        self.assertEqual(f.candidates, [])                         # одному мало часов, другому мало лайков
+        self.assertEqual(self.asked(), [])                         # и модель зря не тревожим
+        app.run(T + timedelta(hours=3, minutes=10))                # первому исполнилось шесть часов
+        self.assertEqual(len(f.candidates), 1)
+        self.assertIn("tooyoung001", f.candidates[0]["text"] + str(f.candidates[0]))
+
+    def test_clips_without_gameplay_are_dropped_silently(self):
+        f = self.fake
+        f.videos["talkinghead"] = vid("talkinghead", "GTA 6 glitches are insane funny delta", 300_000, 8,
+                                      duration=50, channel="UC5", likes=12_000)
+        f.videos["memeinserts"] = vid("memeinserts", "GTA 6 funny fails ranking echo", 250_000, 9,
+                                      duration=37, channel="UC6", likes=9_000)
+        f.search_ids = list(f.videos)
+        f.verdicts = {"delta": "none", "echo": "edited"}
+        app.run(T)
+        db = self.db()["items"]
+        self.assertEqual(db["yt:talkinghead"]["status"], "rejected")
+        self.assertEqual(db["yt:talkinghead"]["reject"], "vision")
+        self.assertNotIn("mod_sent_at", db["yt:talkinghead"])      # модератору его не показывали
+        self.assertEqual(db["yt:memeinserts"]["status"], "rejected")
+        self.assertEqual(len(f.candidates), 1)                     # в личку пришёл только чистый геймплей
+        self.assertEqual(db["yt:goodclip001"]["status"], "pending")
+
+    def test_unreadable_answer_or_missing_frames_go_to_the_moderator(self):
+        self.fake.verdicts = {"alpha": "garbage"}
+        app.run(T)
+        item = self.db()["items"]["yt:goodclip001"]
+        self.assertEqual(item["status"], "pending")
+        self.assertNotIn("auto_at", item)                          # обычный кандидат: сам не выйдет
+        self.assertIn("ч назад", self.note())
+        self.assertEqual(app.run(T + timedelta(hours=3)), 0)
+        self.assertEqual(self.fake.posts, [])
+
+    def test_no_frames_means_manual_too(self):
+        net.get_bytes = lambda service, url: None
+        app.run(T)
+        self.assertNotIn("auto_at", self.db()["items"]["yt:goodclip001"])
+        self.assertEqual(self.asked(), [])
+
+    def test_model_down_falls_back_to_manual_and_tells_admin_once(self):
+        self.fake.social_error = ("api.anthropic.com", net.ApiError("anthropic", 401, "invalid x-api-key"))
+        self.fake.videos["goodclip002"] = vid("goodclip002", "GTA 6 stunt funny foxtrot", 210_000, 8,
+                                              duration=19, channel="UC7", likes=7_000)
+        self.fake.search_ids = list(self.fake.videos)
+        app.run(T)
+        self.assertEqual(len(self.fake.candidates), 2)             # оба пришли на обычную модерацию
+        self.assertTrue(all("auto_at" not in i for i in self.db()["items"].values()))
+        self.assertEqual(len(self.asked()), 1)                     # после сбоя модель в этом проходе не трогаем
+        app.run(T + timedelta(minutes=10))
+        alerts = [r for r in self.fake.replies if "Проверка кадров" in r["text"]]
+        self.assertEqual(len(alerts), 1)
+        self.assertEqual(app.run(T + timedelta(hours=3)), 0)       # сами не вышли
+        # проверку, которая не состоялась, не запоминаем: в следующий раз спросим снова
+        self.assertNotIn("vision", self.db()["items"]["yt:goodclip001"])
+
+    def test_without_a_key_everything_works_as_before(self):
+        os.environ["ANTHROPIC_API_KEY"] = ""
+        self.fake.videos["tooyoung001"] = vid("tooyoung001", "GTA 6 stunt fail funny bravo", 200_000, 3,
+                                              duration=22, channel="UC2")
+        self.fake.search_ids = list(self.fake.videos)
+        app.run(T)
+        self.assertEqual(len(self.fake.candidates), 2)             # и свежий, и без лайков: решает модератор
+        self.assertTrue(all("auto_at" not in i for i in self.db()["items"].values()))
+        self.assertEqual(self.asked(), [])
+
+    def test_daily_cap(self):
+        cfg.AUTO_MAX_PER_DAY = 2
+        f = self.fake
+        f.videos = {f"capclip{n:04d}": vid(f"capclip{n:04d}", f"GTA 6 funny moment {n} unique{n * 7919}",
+                                           200_000 + n, 8, duration=20 + n * 5, channel=f"UC{n}", likes=6_000 + n)
+                    for n in range(4)}
+        f.search_ids = list(f.videos)
+        app.run(T)
+        app.run(T + timedelta(minutes=10))
+        self.assertEqual(len(f.candidates), 2)                     # больше двух в сутки не ставим
+        app.run(T + timedelta(hours=24, minutes=20))               # сутки прошли (ролики к тому времени уже популярные)
+        self.assertGreater(len(f.candidates), 2)
+
+    def test_gemini_backend(self):
+        os.environ["ANTHROPIC_API_KEY"] = ""
+        os.environ["GEMINI_API_KEY"] = "g-key"
+        self.fake.verdicts = {"alpha": "edited"}
+        app.run(T)
+        url, body = next((u, b) for u, b in self.fake.sent if "googleapis" in u)
+        self.assertTrue(url.endswith(f"/models/{cfg.VISION_GEMINI_MODEL}:generateContent"))
+        self.assertNotIn("g-key", url)                             # ключ в заголовке, не в адресе
+        self.assertEqual(body["contents"][0]["parts"][0]["inline_data"]["mime_type"], "image/jpeg")
+        self.assertIn({"x-goog-api-key": "g-key"}, self.fake.sent_headers)
+        item = self.db()["items"]["yt:goodclip001"]
+        self.assertEqual((item["status"], item["vision"]["by"]), ("rejected", "gemini"))
+
+    def test_parse_model_answers(self):
+        self.assertEqual(vision.parse('{"verdict": "clean", "why": "gameplay with facecam"}')["verdict"], "clean")
+        self.assertEqual(vision.parse('```json\n{"verdict":"NONE","why":"talking head"}\n```')["verdict"], "none")
+        self.assertIsNone(vision.parse('{"verdict": "maybe"}'))
+        self.assertIsNone(vision.parse("I cannot tell"))
+        self.assertIsNone(vision.parse(""))

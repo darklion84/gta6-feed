@@ -4,7 +4,8 @@
 2. найти новые ролики на YouTube
 3. обновить просмотры у кандидатов
 4. опубликовать одобренное; новых кандидатов отправить админу на модерацию
-   (или сразу в канал, если MODERATION = False)
+   (или сразу в канал, если MODERATION = False). В автоматическом режиме
+   (AUTO_MODE) кандидат выходит сам, если модератор его вовремя не пропустил
 5. раз в сутки отправить в канал подборку лучших роликов дня
    и анонсировать новое в других сетях (Bluesky, Threads), если они подключены
 6. пересобрать сайт: docs/feed.json, страницы роликов, подборку, карту сайта
@@ -17,9 +18,10 @@ import logging
 import os
 import re
 from datetime import timedelta, timezone
+from zoneinfo import ZoneInfo
 
 import config as cfg
-from . import dedup, links, net, pages, social, store, telegram, topics, worker, youtube
+from . import dedup, links, net, pages, social, store, telegram, topics, vision, worker, youtube
 
 log = logging.getLogger("feed")
 RELEVANT = [re.compile(p, re.I) for p in cfg.MUST_MATCH]
@@ -72,6 +74,22 @@ def was_seen(item):
 
 def moderated():
     return bool(cfg.MODERATION and telegram.token() and telegram.admin_ids())
+
+
+def likes_rate(item):
+    """Лайков на 1000 просмотров."""
+    return 1000 * (item.get("likes") or 0) / max(item.get("views") or 0, 1)
+
+
+def auto_on():
+    """Автоматический режим: кандидаты выходят сами, если модератор их не пропустил."""
+    return bool(cfg.AUTO_MODE and moderated() and vision.enabled())
+
+
+def auto_ready(item, t):
+    """Ролик отлежался и нравится зрителям: можно проверять кадры и ставить на выход."""
+    return (store.hours_since(item["published_at"], t) >= cfg.AUTO_MIN_AGE_HOURS
+            and likes_rate(item) >= cfg.AUTO_MIN_LIKES_PER_1000)
 
 
 def yt_item(v, t, source="search"):
@@ -458,10 +476,40 @@ def screen(item, cands, published, recent, t):
     return item
 
 
-def send_to_admins(item, t):
-    """Кандидат на модерацию. -> удалось ли отправить хоть кому-то."""
+def frames_verdict(item):
+    """Что на кадрах ролика: "clean" | "edited" | "none" | None (проверить не удалось).
+
+    Ответ запоминается в записи: второй раз модель об одном ролике не спрашиваем.
+    """
+    if "vision" not in item:
+        item["vision"] = vision.check(item)
+    return (item["vision"] or {}).get("verdict")
+
+
+def vision_failed(db, t, e):
+    """Модель недоступна: пишем в лог и раз в сутки говорим об этом модератору."""
+    log.warning("проверка кадров не работает: %s", e)
+    day = t.astimezone(timezone.utc).strftime("%Y-%m-%d")
+    if db["state"].get("vision_alert") == day:
+        return
+    db["state"]["vision_alert"] = day
+    for chat_id in sorted(telegram.admin_ids()):
+        telegram.reply(chat_id, "⚠️ Проверка кадров не отвечает, поэтому ролики пока не выходят сами: "
+                                "кандидаты приходят на обычную модерацию. Проверьте ключ модели "
+                                "в секретах репозитория.")
+
+
+def send_to_admins(item, t, auto_at=None):
+    """Кандидат на модерацию. -> удалось ли отправить хоть кому-то.
+
+    auto_at: когда ролик выйдет сам, если модератор его не пропустит (автоматический режим).
+    """
     age = store.hours_since(item["published_at"], t)
-    note = f"⏳ {age:.0f} ч назад · 📈 {telegram.fmt_views(int(velocity(item, t)))}/ч"
+    if auto_at:
+        local = store.parse(auto_at).astimezone(ZoneInfo(cfg.ADMIN_TZ))
+        note = f"🤖 выйдет сам в {local:%H:%M} · 👍 {likes_rate(item):.0f}/1000 · ⏳ {age:.0f} ч"
+    else:
+        note = f"⏳ {age:.0f} ч назад · 📈 {telegram.fmt_views(int(velocity(item, t)))}/ч"
     msgs = []
     for chat_id in sorted(telegram.admin_ids()):
         try:
@@ -473,13 +521,16 @@ def send_to_admins(item, t):
     if not msgs:
         return False
     item["status"], item["mod_msgs"], item["mod_sent_at"] = "pending", msgs, store.iso(t)
-    log.info("на модерации: %s %s", item["key"], item.get("title", "")[:60])
+    if auto_at:
+        item["auto_at"] = auto_at
+    log.info("%s: %s %s", "выйдет сам" if auto_at else "на модерации", item["key"], item.get("title", "")[:60])
     return True
 
 
 def publish(db, t):
     items = db["items"]
     mod = moderated()
+    auto = auto_on()
     published = [i for i in items.values() if i["status"] == "published"]
     # Всё, что админ уже видел: опубликованное, ждущее ответа и пропущенное им.
     # Перезалив или другая нарезка любого из этих роликов повторно не предлагается.
@@ -488,13 +539,21 @@ def publish(db, t):
               <= cfg.DEDUP_WINDOW_HOURS]
     posted = 0
 
-    # 1. то, что уже выбрал человек: одобренные кандидаты и присланные вручную ссылки
+    # 1. то, что уже выбрано: одобренные кандидаты, присланные вручную ссылки и,
+    #    в автоматическом режиме, кандидаты, которых модератор не пропустил за отведённое время
+    due = lambda i: (cfg.AUTO_MODE and i["status"] == "pending" and i.get("auto_at")
+                     and store.hours_since(i["auto_at"], t) >= 0)
     ready = [i for i in items.values()
-             if i["status"] == "approved" or (i["status"] == "new" and i.get("source") == "manual")]
-    ready.sort(key=lambda i: i.get("approved_at") or i["found_at"])
+             if i["status"] == "approved" or (i["status"] == "new" and i.get("source") == "manual") or due(i)]
+    ready.sort(key=lambda i: i.get("approved_at") or i.get("auto_at") or i["found_at"])
     for item in ready:
         if posted >= cfg.MAX_POSTS_PER_RUN:
             break
+        if item["status"] == "pending":
+            # Сначала убираем сообщение с кнопками, потом публикуем: так модератор
+            # не нажмёт «В канал» под роликом, который уже выходит.
+            telegram.clear(item, "🤖 Вышел сам")
+            item["auto"] = True
         result = post(item, t)
         if result == "stop":
             return posted
@@ -507,12 +566,22 @@ def publish(db, t):
     # 2. кандидаты из поиска: на модерацию или, без неё, сразу в канал
     cands = [i for i in items.values()
              if i["status"] == "new" and i.get("source") != "manual" and qualifies(i, t)]
-    cands.sort(key=lambda i: -velocity(i, t))
+    if auto:
+        # В автоматическом режиме модератору приходят только ролики, готовые выйти сами:
+        # отлежавшиеся и с хорошей долей лайков. Лучшие по лайкам идут первыми.
+        cands = [i for i in cands if auto_ready(i, t)]
+        cands.sort(key=lambda i: -likes_rate(i))
+    else:
+        cands.sort(key=lambda i: -velocity(i, t))
     waiting = sum(1 for i in items.values() if i["status"] == "pending")
+    queued_today = sum(1 for i in items.values() if i.get("auto_at") and i.get("mod_sent_at")
+                       and store.hours_since(i["mod_sent_at"], t) <= 24)
     sent = 0
     for item in cands:
         if mod:
             if sent >= cfg.MOD_BATCH or waiting + sent >= cfg.MOD_MAX_PENDING:
+                break
+            if auto and queued_today + sent >= cfg.AUTO_MAX_PER_DAY:
                 break
         elif posted >= cfg.MAX_POSTS_PER_RUN:
             break
@@ -524,8 +593,23 @@ def publish(db, t):
         item = screen(item, cands, published, recent, t)
         if item is None:
             continue
+        auto_at = None
+        if auto:
+            try:
+                verdict = frames_verdict(item)
+            except net.ApiError as e:
+                vision_failed(db, t, e)
+                auto = False        # до конца прохода кандидаты идут на обычную модерацию
+            else:
+                if verdict in ("edited", "none"):
+                    item["status"], item["reject"] = "rejected", "vision"
+                    log.info("кадры (%s): %s %s", verdict, item["key"], item.get("title", "")[:60])
+                    continue
+                if verdict == "clean":
+                    auto_at = store.iso(t + timedelta(hours=cfg.AUTO_VETO_HOURS))
+                # кадров нет или ответ не разобрать: пусть решает модератор
         if mod:
-            if not send_to_admins(item, t):
+            if not send_to_admins(item, t, auto_at):
                 break   # админ ещё не нажал Start у бота, либо Telegram недоступен
             sent += 1
             recent.append(item)
