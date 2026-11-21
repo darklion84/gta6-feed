@@ -4,6 +4,11 @@ name: frames
 # Запускается только вручную, на ленту не влияет.
 on:
   workflow_dispatch:
+    inputs:
+      cleanup:
+        description: "Только удалить временную ветку frames-tmp"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -16,14 +21,21 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: main
+      - name: Удалить временную ветку
+        if: inputs.cleanup
+        run: git push origin --delete frames-tmp
       - uses: actions/setup-python@v6
+        if: ${{ !inputs.cleanup }}
         with:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+        if: ${{ !inputs.cleanup }}
       - run: python tools/frames.py frames_out
+        if: ${{ !inputs.cleanup }}
       # Листы кладутся во временную ветку frames-tmp: её забирают для оценки и сразу удаляют.
       - name: Временная ветка с листами
+        if: ${{ !inputs.cleanup }}
         run: |
           cd frames_out
           git init -q -b frames-tmp
