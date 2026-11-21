@@ -1,0 +1,29 @@
+name: frames
+
+# Разовый эксперимент для автомодерации: кадры уже решённых роликов (см. tools/frames.py).
+# Запускается только вручную, на ленту не влияет.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frames:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python tools/frames.py frames_out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frames
+          path: frames_out
+          retention-days: 1
