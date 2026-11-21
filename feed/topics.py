@@ -20,8 +20,10 @@ SCRIPTS = (("ru", "Ѐ", "ӿ"), ("hi", "ऀ", "ॿ"), ("ar", "؀", "ۿ"),
            ("zh", "一", "鿿"))
 # Для языков на латинице: частые служебные слова. Нужно два совпадения, иначе английский.
 WORDS = {
-    "es": "el la los las del en un una que mi primer como con por es más muy este esta para y se lo",
-    "pt": "o os as um uma no na do da em como com não você achou ficar dos das para é mais meu isso e",
+    "es": "el la los las del en un una que mi primer como cómo con por es más muy este esta para y se lo "
+          "jugar primera persona fácil dinero infinito truco nuevo",
+    "pt": "o os as um uma no na do da em como com não você achou ficar dos das para é mais meu isso e "
+          "jogar primeira pessoa fácil dinheiro infinito novo",
     "fr": "le les des sur un une est du dans avec pas déjà pour sa son ce cette et au aux je il",
     "de": "der die das und ist im mit nicht ein eine auf für ich zu den dem so wie",
     "nl": "het een deze kun je door niet met van dit dat en op voor zijn naar",
