@@ -19,7 +19,7 @@ import re
 from datetime import timedelta, timezone
 
 import config as cfg
-from . import dedup, links, net, pages, social, store, telegram, worker, youtube
+from . import dedup, links, net, pages, social, store, telegram, topics, worker, youtube
 
 log = logging.getLogger("feed")
 RELEVANT = [re.compile(p, re.I) for p in cfg.MUST_MATCH]
@@ -82,6 +82,7 @@ def yt_item(v, t, source="search"):
         "published_at": v["published_at"], "duration": v["duration"],
         "views": v["views"], "likes": v["likes"], "comments": v.get("comments", 0),
         "status": "new", "source": source, "found_at": store.iso(t),
+        **({"lang": v["lang"]} if v.get("lang") else {}),
     }
 
 
@@ -425,7 +426,7 @@ def post(item, t):
 
 
 def screen(item, cands, published, recent, t):
-    """Отсев перед показом: копии, лимит на автора, дубли. -> запись или None."""
+    """Отсев перед показом: копии, лимит на автора, дубли, повторы темы. -> запись или None."""
     # если в очереди сразу несколько копий одного ролика, берём самую раннюю (оригинал)
     twins = [c for c in cands if c is not item and c["status"] == "new"
              and dedup.is_duplicate(item, c)]
@@ -448,6 +449,11 @@ def screen(item, cands, published, recent, t):
     if dup:
         item["status"], item["dup_of"] = "duplicate", dup
         log.info("дубль: %s = %s", item["key"], dup)
+        return None
+    taken = topics.repeat(item, recent, t)
+    if taken:
+        item["status"], item["dup_of"], item["dup_kind"] = "duplicate", taken, "topic"
+        log.info("повтор темы «%s»: %s после %s", topics.topic(item), item["key"], taken)
         return None
     return item
 

@@ -7,7 +7,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 import config as cfg
-from feed import __main__ as app
+from feed import topics, __main__ as app
 from feed import dedup, links, net, store, telegram, worker, youtube
 
 T = datetime(2026, 11, 19, 12, 0, tzinfo=timezone.utc)
@@ -1084,3 +1084,48 @@ class OtherNetworks(Base):
         self.assertEqual(len(tops), 1)
         published = [c for c in self.calls("/threads") if c["link_attachment"] == f"{cfg.SITE_URL}top/#feed"]
         self.assertEqual(len(published), 1)
+
+
+class TopicRepeats(Base):
+    """Один и тот же глитч берётся один раз на язык."""
+
+    def test_language_of_a_clip(self):
+        lang = lambda title, **kw: topics.language({"title": title, **kw})
+        self.assertEqual(lang("GTA 6 UNLIMITED Money Glitch! 🤑 (Do This Right Now) #shorts"), "en")
+        self.assertEqual(lang("COMO FICAR EM PRIMEIRA PESSOA NO GTA 6 (GLITCH) 🤯 #gta6"), "pt")
+        self.assertEqual(lang("Mi PRIMER BUG en GTA 6😨 con el coche"), "es")
+        self.assertEqual(lang("Door deze GTA 6-glitch kun je in first-person gluren 👀"), "nl")
+        self.assertEqual(lang("Глитч на деньги в GTA 6"), "ru")
+        self.assertEqual(lang("Finally GTA 6 കളിച്ചു....but എല്ലാം മറന്നു!!"), "ml")
+        self.assertEqual(lang("EARLY GAME - UNLIMITED MONEY GLITCH in GTA 6😱🤑", lang="de"), "de")   # как указал автор
+        self.assertEqual(lang("GTA 6 money glitch", lang="zxx"), "en")
+
+    def test_second_clip_on_a_taken_topic_is_not_offered(self):
+        cfg.MAX_POSTS_PER_RUN = 10
+        f = self.fake
+        f.videos = {
+            "moneyglit01": vid("moneyglit01", "strongest GTA 6 Money Glitch 🤑💰 alpha", 300_000, 10, duration=31, channel="UC1"),
+            "moneyglit02": vid("moneyglit02", "GTA 6 UNLIMITED money glitch! Do This Right Now bravo", 200_000, 9, duration=44, channel="UC2"),
+            "moneyglit03": vid("moneyglit03", "GLITCH de dinero infinito en el GTA 6 con la moto", 150_000, 8, duration=52, channel="UC3"),
+            "otherclip01": vid("otherclip01", "GTA 6 NPC road rage funny moment charlie", 120_000, 7, duration=23, channel="UC4"),
+        }
+        f.search_ids = list(f.videos)
+        app.run(T)
+        db = self.db()["items"]
+        self.assertEqual(db["yt:moneyglit01"]["status"], "published")
+        self.assertEqual(db["yt:moneyglit02"]["status"], "duplicate")      # та же тема на том же языке
+        self.assertEqual(db["yt:moneyglit02"]["dup_kind"], "topic")
+        self.assertEqual(db["yt:moneyglit02"]["dup_of"], "yt:moneyglit01")
+        self.assertEqual(db["yt:moneyglit03"]["status"], "published")      # другой язык: можно
+        self.assertEqual(db["yt:otherclip01"]["status"], "published")      # тема не из списка
+
+    def test_topic_is_free_again_when_moderator_skipped_or_time_passed(self):
+        a = {"key": "yt:a", "title": "GTA 6 money glitch", "status": "rejected", "mod_sent_at": store.iso(T)}
+        b = {"key": "yt:b", "title": "Unlimited money in GTA 6", "status": "new"}
+        self.assertIsNone(topics.repeat(b, [a], T))                        # первый пропущен: тема свободна
+        a["status"] = "pending"
+        self.assertEqual(topics.repeat(b, [a], T), "yt:a")                 # первый ждёт решения
+        a.update(status="published", posted_at=store.iso(T))
+        self.assertEqual(topics.repeat(b, [a], T + timedelta(hours=cfg.TOPIC_WINDOW_HOURS - 1)), "yt:a")
+        self.assertIsNone(topics.repeat(b, [a], T + timedelta(hours=cfg.TOPIC_WINDOW_HOURS + 1)))
+        self.assertIsNone(topics.repeat({"key": "yt:c", "title": "GTA 6 NPC fail", "status": "new"}, [a], T))

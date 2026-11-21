@@ -57,6 +57,7 @@ def details(ids):
                 "channel_id": sn.get("channelId", ""),
                 "published_at": sn.get("publishedAt", ""),
                 "live": sn.get("liveBroadcastContent", "none"),
+                "lang": (sn.get("defaultAudioLanguage") or sn.get("defaultLanguage") or "")[:2].lower(),
                 "duration": parse_duration(v.get("contentDetails", {}).get("duration")),
                 "views": int(st.get("viewCount", 0) or 0),
                 "likes": int(st.get("likeCount", 0) or 0),
