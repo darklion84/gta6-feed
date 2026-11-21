@@ -158,7 +158,7 @@ class Base(unittest.TestCase):
         self._cfg = {k: getattr(cfg, k) for k in (
             "MODERATION", "POPULAR_MIN_VIEWS", "FRESH_MAX_AGE_HOURS",
             "FRESH_MIN_VIEWS", "FRESH_MIN_VELOCITY", "TOP_ENABLED", "MAX_POSTS_PER_RUN",
-            "SOCIAL_MAX_PER_RUN", "THREADS_REFRESH_DAYS", "AUTO_MODE", "AUTO_MAX_PER_DAY")}
+            "SOCIAL_MAX_PER_RUN", "THREADS_REFRESH_DAYS", "AUTO_MODE", "AUTO_MAX_PER_DAY", "AUTO_VISION")}
         # тесты не должны зависеть от того, как настроен боевой config.py
         cfg.MODERATION = False
         cfg.TOP_ENABLED = False     # подборку дня проверяет отдельный набор тестов
@@ -1163,7 +1163,7 @@ class AutoMode(Base):
 
     def setUp(self):
         super().setUp()
-        cfg.MODERATION, cfg.AUTO_MODE = True, True
+        cfg.MODERATION, cfg.AUTO_MODE, cfg.AUTO_VISION = True, True, True
         os.environ["ANTHROPIC_API_KEY"] = "sk-test"
         net.get_bytes = lambda service, url: jpeg(url.split("/vi/")[1].split("/")[0])
         f = self.fake
@@ -1297,6 +1297,28 @@ class AutoMode(Base):
         self.assertEqual(len(self.fake.candidates), 2)             # и свежий, и без лайков: решает модератор
         self.assertTrue(all("auto_at" not in i for i in self.db()["items"].values()))
         self.assertEqual(self.asked(), [])
+
+    def test_veto_mode_without_frame_check(self):
+        # ключа к модели ещё нет: ролики выходят сами, кадры смотрит модератор
+        cfg.AUTO_VISION = False
+        os.environ["ANTHROPIC_API_KEY"] = ""
+        self.fake.videos["tooyoung001"] = vid("tooyoung001", "GTA 6 stunt fail funny bravo", 200_000, 3,
+                                              duration=22, channel="UC2", likes=8_000)
+        self.fake.search_ids = list(self.fake.videos)
+        app.run(T)
+        self.assertEqual(len(self.fake.candidates), 1)             # свежий ролик ждёт своих шести часов
+        self.assertIn("🤖 выйдет сам в 15:00", self.note())
+        self.assertEqual(self.asked(), [])
+        self.assertNotIn("vision", self.db()["items"]["yt:goodclip001"])
+        self.assertEqual(app.run(T + timedelta(hours=2, minutes=1)), 1)
+        self.assertTrue(self.db()["items"]["yt:goodclip001"]["auto"])
+
+    def test_frame_check_off_ignores_the_key(self):
+        cfg.AUTO_VISION = False                                    # ключ уже есть, но модель ещё не проверена
+        self.fake.verdicts = {"alpha": "none"}
+        app.run(T)
+        self.assertEqual(self.asked(), [])
+        self.assertEqual(self.db()["items"]["yt:goodclip001"]["status"], "pending")
 
     def test_daily_cap(self):
         cfg.AUTO_MAX_PER_DAY = 2

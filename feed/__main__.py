@@ -83,7 +83,7 @@ def likes_rate(item):
 
 def auto_on():
     """Автоматический режим: кандидаты выходят сами, если модератор их не пропустил."""
-    return bool(cfg.AUTO_MODE and moderated() and vision.enabled())
+    return bool(cfg.AUTO_MODE and moderated() and (vision.enabled() or not cfg.AUTO_VISION))
 
 
 def auto_ready(item, t):
@@ -594,7 +594,9 @@ def publish(db, t):
         if item is None:
             continue
         auto_at = None
-        if auto:
+        if auto and not cfg.AUTO_VISION:
+            auto_at = store.iso(t + timedelta(hours=cfg.AUTO_VETO_HOURS))   # кадры смотрит модератор
+        elif auto:
             try:
                 verdict = frames_verdict(item)
             except net.ApiError as e:
