@@ -131,8 +131,10 @@ AUTO_VISION = False
 AUTO_MIN_AGE_HOURS = 6
 AUTO_MIN_LIKES_PER_1000 = 20
 AUTO_VETO_HOURS = 2
-AUTO_MAX_PER_DAY = 40        # кандидаты идут равномерно: по одному раз в 24/40 часа (36 минут)
-ADMIN_TZ = "Europe/Prague"   # в каком часовом поясе показывать модератору время выхода
+AUTO_MAX_PER_DAY = 40        # кандидаты идут равномерно в течение AUTO_SEND_HOURS: раз в ~20 минут
+AUTO_SEND_HOURS = ("08:30", "22:00")   # когда кандидаты приходят модератору (по ADMIN_TZ); ночью тишина
+AUTO_MAX_AGE_HOURS = 24      # ролик, загруженный ночью, дождётся утра (вместо FRESH_MAX_AGE_HOURS)
+ADMIN_TZ = "Europe/Prague"   # часовой пояс модератора
 VISION_ANTHROPIC_MODEL = "claude-haiku-5-5"
 VISION_GEMINI_MODEL = "gemini-3.1-flash-lite"
 

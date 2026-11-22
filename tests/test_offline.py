@@ -1330,13 +1330,32 @@ class AutoMode(Base):
         self.assertEqual(len(f.candidates), 1)                     # не пачкой, а по одному
         self.assertIn("capclip0003", str(f.candidates[0]))         # первым идёт ролик с лучшей долей лайков
         app.run(T + timedelta(minutes=10))
-        app.run(T + timedelta(minutes=30))
-        self.assertEqual(len(f.candidates), 1)                     # 24 ч / 40 = 36 минут между кандидатами
-        app.run(T + timedelta(minutes=40))
+        self.assertEqual(len(f.candidates), 1)                     # 13,5 часа / 40 = раз в 20 минут
+        app.run(T + timedelta(minutes=20, seconds=-20))            # проходы идут не секунда в секунду
         self.assertEqual(len(f.candidates), 2)
-        cfg.AUTO_MAX_PER_DAY = 144                                 # норма больше: шаг 10 минут
-        app.run(T + timedelta(minutes=50))
+        cfg.AUTO_MAX_PER_DAY = 80                                  # норма больше: шаг 10 минут
+        app.run(T + timedelta(minutes=30))
         self.assertEqual(len(f.candidates), 3)
+
+    def test_nothing_new_at_night(self):
+        # T: 13:00 по Праге. Кандидаты приходят с 8:30 до 22:00.
+        f = self.fake
+        f.videos["nightclip01"] = vid("nightclip01", "GTA 6 police chase funny night bravo", 30_000, -8,
+                                      duration=27, channel="UC2", likes=1_500)   # загрузят в 21:00 по Праге
+        f.search_ids = list(f.videos)
+        app.run(T + timedelta(hours=8, minutes=50))                # 21:50: ещё можно
+        self.assertEqual(len(f.candidates), 1)
+        f.videos["nightclip01"]["statistics"].update(viewCount="60000", likeCount="3000")
+        app.run(T + timedelta(hours=9, minutes=30))                # 22:30: новых уже не присылаем
+        self.assertEqual(len(f.candidates), 1)
+        self.assertEqual(app.run(T + timedelta(hours=10, minutes=51)), 1)   # 23:51: присланный до 22 выходит сам
+        for hours in (11, 15, 19.3):                               # 00:00, 04:00, 08:18
+            app.run(T + timedelta(hours=hours))
+        self.assertEqual(len(f.candidates), 1)                     # ночью никого не прислали
+        app.run(T + timedelta(hours=19, minutes=40))               # 08:40
+        self.assertEqual(len(f.candidates), 2)
+        self.assertIn("nightclip01", str(f.candidates[1]))         # ночной ролик дождался утра
+        self.assertIn("выйдет сам в 10:40", self.note())
 
     def test_gemini_backend(self):
         os.environ["ANTHROPIC_API_KEY"] = ""

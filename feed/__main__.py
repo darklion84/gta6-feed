@@ -57,11 +57,11 @@ def velocity(item, t):
     return item.get("views", 0) / age
 
 
-def qualifies(item, t):
+def qualifies(item, t, max_age=None):
     views = item.get("views", 0)
     if views >= cfg.POPULAR_MIN_VIEWS:
         return True
-    return (store.hours_since(item["published_at"], t) <= cfg.FRESH_MAX_AGE_HOURS
+    return (store.hours_since(item["published_at"], t) <= (max_age or cfg.FRESH_MAX_AGE_HOURS)
             and views >= cfg.FRESH_MIN_VIEWS
             and velocity(item, t) >= cfg.FRESH_MIN_VELOCITY)
 
@@ -84,6 +84,28 @@ def likes_rate(item):
 def auto_on():
     """Автоматический режим: кандидаты выходят сами, если модератор их не пропустил."""
     return bool(cfg.AUTO_MODE and moderated() and (vision.enabled() or not cfg.AUTO_VISION))
+
+
+def auto_minutes():
+    """Часы, в которые модератору приходят кандидаты: (начало, конец) в минутах от полуночи."""
+    start, end = (int(h) * 60 + int(m) for h, m in (x.split(":") for x in cfg.AUTO_SEND_HOURS))
+    return start, end
+
+
+def auto_hours_now(t):
+    """Сейчас время, когда модератор на связи (по его часовому поясу)."""
+    local = t.astimezone(ZoneInfo(cfg.ADMIN_TZ))
+    start, end = auto_minutes()
+    return start <= local.hour * 60 + local.minute < end
+
+
+def auto_interval_hours():
+    """Шаг между кандидатами: суточная норма делится на часы, когда они приходят.
+
+    Три минуты запаса: проходы идут раз в десять минут, но не секунда в секунду.
+    """
+    start, end = auto_minutes()
+    return max((end - start) / cfg.AUTO_MAX_PER_DAY - 3, 0) / 60
 
 
 def auto_ready(item, t):
@@ -564,8 +586,10 @@ def publish(db, t):
                 recent.append(item)
 
     # 2. кандидаты из поиска: на модерацию или, без неё, сразу в канал
+    # В автоматическом режиме ролик может ждать утра, поэтому "свежим" он считается дольше.
+    max_age = cfg.AUTO_MAX_AGE_HOURS if auto else None
     cands = [i for i in items.values()
-             if i["status"] == "new" and i.get("source") != "manual" and qualifies(i, t)]
+             if i["status"] == "new" and i.get("source") != "manual" and qualifies(i, t, max_age)]
     if auto:
         # В автоматическом режиме модератору приходят только ролики, готовые выйти сами:
         # отлежавшиеся и с хорошей долей лайков. Лучшие по лайкам идут первыми.
@@ -574,11 +598,14 @@ def publish(db, t):
     else:
         cands.sort(key=lambda i: -velocity(i, t))
     waiting = sum(1 for i in items.values() if i["status"] == "pending")
-    # Автоматические кандидаты идут ровной струйкой, по одному раз в 24/AUTO_MAX_PER_DAY
-    # часа. Иначе вся суточная норма уходит пачкой за несколько часов, а потом тишина.
+    # Автоматические кандидаты приходят только в часы, когда модератор на связи
+    # (AUTO_SEND_HOURS), и ровной струйкой, по одному: иначе суточная норма уходит
+    # пачкой за пару часов, а потом тишина. Ночью ничего нового не выходит: то, что
+    # набралось, начнёт приходить утром.
     last_auto = max((i["mod_sent_at"] for i in items.values() if i.get("auto_at") and i.get("mod_sent_at")),
                     default=None)
-    auto_slot = not last_auto or store.hours_since(last_auto, t) >= 24 / cfg.AUTO_MAX_PER_DAY
+    auto_slot = auto_hours_now(t) and (not last_auto
+                                       or store.hours_since(last_auto, t) >= auto_interval_hours())
     sent = 0
     for item in cands:
         if mod:
