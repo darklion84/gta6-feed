@@ -574,14 +574,17 @@ def publish(db, t):
     else:
         cands.sort(key=lambda i: -velocity(i, t))
     waiting = sum(1 for i in items.values() if i["status"] == "pending")
-    queued_today = sum(1 for i in items.values() if i.get("auto_at") and i.get("mod_sent_at")
-                       and store.hours_since(i["mod_sent_at"], t) <= 24)
+    # Автоматические кандидаты идут ровной струйкой, по одному раз в 24/AUTO_MAX_PER_DAY
+    # часа. Иначе вся суточная норма уходит пачкой за несколько часов, а потом тишина.
+    last_auto = max((i["mod_sent_at"] for i in items.values() if i.get("auto_at") and i.get("mod_sent_at")),
+                    default=None)
+    auto_slot = not last_auto or store.hours_since(last_auto, t) >= 24 / cfg.AUTO_MAX_PER_DAY
     sent = 0
     for item in cands:
         if mod:
             if sent >= cfg.MOD_BATCH or waiting + sent >= cfg.MOD_MAX_PENDING:
                 break
-            if auto and queued_today + sent >= cfg.AUTO_MAX_PER_DAY:
+            if auto and not auto_slot:
                 break
         elif posted >= cfg.MAX_POSTS_PER_RUN:
             break
@@ -613,6 +616,8 @@ def publish(db, t):
         if mod:
             if not send_to_admins(item, t, auto_at):
                 break   # админ ещё не нажал Start у бота, либо Telegram недоступен
+            if auto_at:
+                auto_slot = False   # следующий автоматический кандидат уйдёт в свой черёд
             sent += 1
             recent.append(item)
         else:

@@ -1320,18 +1320,23 @@ class AutoMode(Base):
         self.assertEqual(self.asked(), [])
         self.assertEqual(self.db()["items"]["yt:goodclip001"]["status"], "pending")
 
-    def test_daily_cap(self):
-        cfg.AUTO_MAX_PER_DAY = 2
+    def test_candidates_come_at_an_even_pace(self):
         f = self.fake
         f.videos = {f"capclip{n:04d}": vid(f"capclip{n:04d}", f"GTA 6 funny moment {n} unique{n * 7919}",
-                                           200_000 + n, 8, duration=20 + n * 5, channel=f"UC{n}", likes=6_000 + n)
+                                           200_000 + n, 8, duration=20 + n * 5, channel=f"UC{n}", likes=6_000 + n * 500)
                     for n in range(4)}
         f.search_ids = list(f.videos)
         app.run(T)
+        self.assertEqual(len(f.candidates), 1)                     # не пачкой, а по одному
+        self.assertIn("capclip0003", str(f.candidates[0]))         # первым идёт ролик с лучшей долей лайков
         app.run(T + timedelta(minutes=10))
-        self.assertEqual(len(f.candidates), 2)                     # больше двух в сутки не ставим
-        app.run(T + timedelta(hours=24, minutes=20))               # сутки прошли (ролики к тому времени уже популярные)
-        self.assertGreater(len(f.candidates), 2)
+        app.run(T + timedelta(minutes=30))
+        self.assertEqual(len(f.candidates), 1)                     # 24 ч / 40 = 36 минут между кандидатами
+        app.run(T + timedelta(minutes=40))
+        self.assertEqual(len(f.candidates), 2)
+        cfg.AUTO_MAX_PER_DAY = 144                                 # норма больше: шаг 10 минут
+        app.run(T + timedelta(minutes=50))
+        self.assertEqual(len(f.candidates), 3)
 
     def test_gemini_backend(self):
         os.environ["ANTHROPIC_API_KEY"] = ""
