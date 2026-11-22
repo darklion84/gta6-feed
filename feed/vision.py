@@ -4,11 +4,14 @@
 не должны попадать ролики, где игры нет вовсе или она тонет в мемах и нарезках.
 
 С YouTube берутся четыре кадра ролика (сам ролик не скачивается), склеиваются в
-одну картинку и уходят модели вместе с названием. Ответ один из трёх:
+одну картинку и уходят модели вместе с названием. Ответ один из четырёх:
 
   clean   игра занимает кадр; лицо стримера, субтитры и подписи не мешают
+  skit    живые люди разыгрывают сцены, поведение NPC или мемы из игры: тоже годится
   edited  игра есть, но с тяжёлыми вставками: мемы, чужое видео, списки, заставки
-  none    игры по сути нет: человек в кадре, сценка, коллаж, скриншоты, другая игра
+  none    игры по сути нет: человек говорит в камеру, коллаж, скриншоты, другая игра
+
+В ленту идут clean и skit (PASS).
 
 Модель подключается секретом репозитория: ANTHROPIC_API_KEY или GEMINI_API_KEY.
 """
@@ -23,7 +26,8 @@ from PIL import Image
 import config as cfg
 from . import net
 
-VERDICTS = ("clean", "edited", "none")
+VERDICTS = ("clean", "skit", "edited", "none")
+PASS = ("clean", "skit")       # с такими ответами ролик может выйти сам
 # сначала кадры в родных пропорциях (у вертикальных роликов они вертикальные), затем обычные
 FRAME_SETS = (("oardefault", "oar1", "oar2", "oar3"), ("hqdefault", "hq1", "hq2", "hq3"))
 FRAME_H = 480          # высота кадра на склейке
@@ -35,13 +39,16 @@ Channel: {author}
 Classify what the video shows.
 - "clean": in-game footage is the main content of the frames. A streamer's facecam, subtitles, \
 a caption, a small logo, or a split screen comparing two games are all fine.
+- "skit": real people act out in-game situations, NPC behaviour or memes from the game in real \
+life (a parody or reenactment of the game). This is welcome even though it is not game footage.
 - "edited": in-game footage is present, but with heavy inserts: full-screen meme or reaction \
 pictures, real-life footage, stock images, ranking or list cards, large artwork banners, or \
 footage from unrelated games.
-- "none": in-game footage is not the main content: only a person talking, real-life video, \
-a skit, a collage, screenshots of posts, or footage of another game.
+- "none": neither of the above: only a person talking to the camera, a reaction or unboxing, \
+real-life video that does not reenact the game, a collage, screenshots of posts, or footage \
+of another game.
 
-Answer with JSON only: {{"verdict": "clean" | "edited" | "none", "why": "<at most 12 words>"}}"""
+Answer with JSON only: {{"verdict": "clean" | "skit" | "edited" | "none", "why": "<at most 12 words>"}}"""
 
 
 def provider():

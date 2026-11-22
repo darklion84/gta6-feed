@@ -1256,6 +1256,13 @@ class AutoMode(Base):
         self.assertEqual(len(f.candidates), 1)                     # в личку пришёл только чистый геймплей
         self.assertEqual(db["yt:goodclip001"]["status"], "pending")
 
+    def test_real_life_reenactment_of_the_game_is_welcome(self):
+        self.fake.verdicts = {"alpha": "skit"}
+        app.run(T)
+        item = self.db()["items"]["yt:goodclip001"]
+        self.assertEqual((item["status"], item["vision"]["verdict"]), ("pending", "skit"))
+        self.assertIn("auto_at", item)
+
     def test_unreadable_answer_or_missing_frames_go_to_the_moderator(self):
         self.fake.verdicts = {"alpha": "garbage"}
         app.run(T)

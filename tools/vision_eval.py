@@ -1,7 +1,8 @@
 """Проверка модели, которая смотрит кадры, на уже размеченных роликах.
 
 tools/vision_labels.json: 258 роликов, по которым модератор принял решение 19–21
-ноября, с оценкой кадров, сделанной вручную (clean / edited / none). Скрипт задаёт
+ноября, с оценкой кадров, сделанной вручную (clean / edited / none; сценок-пародий,
+которые модератор позже тоже разрешил, в разметке нет). Скрипт задаёт
 те же ролики модели (feed/vision.py) и печатает, насколько она совпала с ручной
 оценкой и что это значит для автоматического режима.
 
@@ -56,18 +57,18 @@ def main():
             print(f"  расхождение {key}: вручную {mine}, модель {got}"
                   f" ({(result or {}).get('why', '')}) | {decision} | {item.get('title', '')[:60]}")
         time.sleep(PAUSE)
-    kinds = ["clean", "edited", "none", "нет ответа"]
+    kinds = ["clean", "skit", "edited", "none", "нет ответа"]
     print("\nручная оценка -> ответ модели")
     print(f"{'':10}" + "".join(f"{k:>12}" for k in kinds))
-    for mine in kinds[:3]:
+    for mine in ("clean", "edited", "none"):
         print(f"{mine:10}" + "".join(f"{table[(mine, got)]:>12}" for got in kinds))
     total = sum(table.values())
     same = sum(v for (a, b), v in table.items() if a == b)
     # для автоматического режима важно одно: выпускать (clean) или нет
-    gate = sum(v for (a, b), v in table.items() if (a == "clean") == (b == "clean"))
+    gate = sum(v for (a, b), v in table.items() if (a == "clean") == (b in vision.PASS))
     print(f"\nсовпало с ручной оценкой: {same} из {total} ({same / max(total, 1):.0%});"
           f" по вопросу «выпускать или нет»: {gate} из {total} ({gate / max(total, 1):.0%})")
-    junk_out = sum(v for (a, b), v in table.items() if a != "clean" and b == "clean")
+    junk_out = sum(v for (a, b), v in table.items() if a != "clean" and b in vision.PASS)
     good_lost = sum(v for (a, b), v in table.items() if a == "clean" and b in ("edited", "none"))
     print(f"мусор, который модель выпустила бы: {junk_out}; чистый геймплей, который она отсекла бы: {good_lost}")
     print("\nответ модели -> решение модератора")

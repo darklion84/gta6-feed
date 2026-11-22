@@ -499,7 +499,7 @@ def screen(item, cands, published, recent, t):
 
 
 def frames_verdict(item):
-    """Что на кадрах ролика: "clean" | "edited" | "none" | None (проверить не удалось).
+    """Что на кадрах ролика: один из vision.VERDICTS или None (проверить не удалось).
 
     Ответ запоминается в записи: второй раз модель об одном ролике не спрашиваем.
     """
@@ -637,7 +637,7 @@ def publish(db, t):
                     item["status"], item["reject"] = "rejected", "vision"
                     log.info("кадры (%s): %s %s", verdict, item["key"], item.get("title", "")[:60])
                     continue
-                if verdict == "clean":
+                if verdict in vision.PASS:
                     auto_at = store.iso(t + timedelta(hours=cfg.AUTO_VETO_HOURS))
                 # кадров нет или ответ не разобрать: пусть решает модератор
         if mod:
