@@ -158,7 +158,7 @@ class Base(unittest.TestCase):
         self._cfg = {k: getattr(cfg, k) for k in (
             "MODERATION", "POPULAR_MIN_VIEWS", "FRESH_MAX_AGE_HOURS",
             "FRESH_MIN_VIEWS", "FRESH_MIN_VELOCITY", "TOP_ENABLED", "MAX_POSTS_PER_RUN",
-            "SOCIAL_MAX_PER_RUN", "THREADS_REFRESH_DAYS", "AUTO_MODE", "AUTO_MAX_PER_DAY", "AUTO_VISION")}
+            "SOCIAL_MAX_PER_RUN", "THREADS_REFRESH_DAYS", "AUTO_MODE", "AUTO_BATCH", "AUTO_VISION")}
         # тесты не должны зависеть от того, как настроен боевой config.py
         cfg.MODERATION = False
         cfg.TOP_ENABLED = False     # подборку дня проверяет отдельный набор тестов
@@ -1327,22 +1327,27 @@ class AutoMode(Base):
         self.assertEqual(self.asked(), [])
         self.assertEqual(self.db()["items"]["yt:goodclip001"]["status"], "pending")
 
-    def test_candidates_come_at_an_even_pace(self):
+    def test_candidates_come_in_hourly_batches(self):
         f = self.fake
         f.videos = {f"capclip{n:04d}": vid(f"capclip{n:04d}", f"GTA 6 funny moment {n} unique{n * 7919}",
                                            200_000 + n, 8, duration=20 + n * 5, channel=f"UC{n}", likes=6_000 + n * 500)
-                    for n in range(4)}
+                    for n in range(12)}
         f.search_ids = list(f.videos)
         app.run(T)
-        self.assertEqual(len(f.candidates), 1)                     # не пачкой, а по одному
-        self.assertIn("capclip0003", str(f.candidates[0]))         # первым идёт ролик с лучшей долей лайков
+        self.assertEqual(len(f.candidates), 5)                     # пачка: пять штук разом
+        self.assertIn("capclip0011", str(f.candidates[0]))         # первым идёт ролик с лучшей долей лайков
+        times = [c["reply_markup"]["inline_keyboard"][1][0]["text"].split(" · ")[0] for c in f.candidates]
+        self.assertEqual(times, [f"🤖 выйдет сам в 15:{m:02d}" for m in (0, 12, 24, 36, 48)])   # а выходят по одному
         app.run(T + timedelta(minutes=10))
-        self.assertEqual(len(f.candidates), 1)                     # 13,5 часа / 40 = раз в 20 минут
-        app.run(T + timedelta(minutes=20, seconds=-20))            # проходы идут не секунда в секунду
-        self.assertEqual(len(f.candidates), 2)
-        cfg.AUTO_MAX_PER_DAY = 80                                  # норма больше: шаг 10 минут
-        app.run(T + timedelta(minutes=30))
-        self.assertEqual(len(f.candidates), 3)
+        app.run(T + timedelta(minutes=50))
+        self.assertEqual(len(f.candidates), 5)                     # следующая пачка только через час
+        app.run(T + timedelta(minutes=60, seconds=-20))            # проходы идут не секунда в секунду
+        self.assertEqual(len(f.candidates), 10)
+        self.assertEqual(app.run(T + timedelta(hours=2, minutes=1)), 1)      # 15:01: вышел первый из первой пачки
+        self.assertEqual(len(f.candidates), 12)                    # и пришла третья, хотя две ещё ждут
+        self.assertEqual(app.run(T + timedelta(hours=2, minutes=13)), 1)     # 15:13: второй
+        cfg.AUTO_BATCH = 3
+        self.assertEqual(app.auto_time(T, 2), store.iso(T + timedelta(hours=cfg.AUTO_VETO_HOURS, minutes=40)))
 
     def test_nothing_new_at_night(self):
         # T: 13:00 по Праге. Кандидаты приходят с 8:30 до 22:00.

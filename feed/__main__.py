@@ -99,13 +99,14 @@ def auto_hours_now(t):
     return start <= local.hour * 60 + local.minute < end
 
 
-def auto_interval_hours():
-    """Шаг между кандидатами: суточная норма делится на часы, когда они приходят.
+def auto_time(t, n):
+    """Когда выйдет сам n-й ролик пачки (n с нуля).
 
-    Три минуты запаса: проходы идут раз в десять минут, но не секунда в секунду.
+    Модератор получает пачку разом, а в канал ролики выходят не разом: первый
+    через AUTO_VETO_HOURS, остальные следом с равным шагом, до следующей пачки.
     """
-    start, end = auto_minutes()
-    return max((end - start) / cfg.AUTO_MAX_PER_DAY - 3, 0) / 60
+    step = cfg.AUTO_BATCH_EVERY_MIN / cfg.AUTO_BATCH
+    return store.iso(t + timedelta(hours=cfg.AUTO_VETO_HOURS, minutes=n * step))
 
 
 def auto_ready(item, t):
@@ -599,19 +600,23 @@ def publish(db, t):
         cands.sort(key=lambda i: -velocity(i, t))
     waiting = sum(1 for i in items.values() if i["status"] == "pending")
     # Автоматические кандидаты приходят только в часы, когда модератор на связи
-    # (AUTO_SEND_HOURS), и ровной струйкой, по одному: иначе суточная норма уходит
-    # пачкой за пару часов, а потом тишина. Ночью ничего нового не выходит: то, что
-    # набралось, начнёт приходить утром.
+    # (AUTO_SEND_HOURS), пачкой до AUTO_BATCH штук раз в AUTO_BATCH_EVERY_MIN минут:
+    # так их удобнее просмотреть за один заход. Ночью ничего нового не выходит: то,
+    # что набралось, начнёт приходить утром. Три минуты запаса: проходы идут раз в
+    # десять минут, но не секунда в секунду.
     last_auto = max((i["mod_sent_at"] for i in items.values() if i.get("auto_at") and i.get("mod_sent_at")),
                     default=None)
-    auto_slot = auto_hours_now(t) and (not last_auto
-                                       or store.hours_since(last_auto, t) >= auto_interval_hours())
-    sent = 0
+    batch_open = auto_hours_now(t) and (
+        not last_auto or store.hours_since(last_auto, t) * 60 >= cfg.AUTO_BATCH_EVERY_MIN - 3)
+    per_run = cfg.AUTO_BATCH if auto else cfg.MOD_BATCH
+    # две пачки могут ещё ждать своего часа, когда приходит третья
+    max_pending = max(cfg.MOD_MAX_PENDING, 3 * cfg.AUTO_BATCH) if auto else cfg.MOD_MAX_PENDING
+    sent = auto_sent = 0
     for item in cands:
         if mod:
-            if sent >= cfg.MOD_BATCH or waiting + sent >= cfg.MOD_MAX_PENDING:
+            if sent >= per_run or waiting + sent >= max_pending:
                 break
-            if auto and not auto_slot:
+            if auto and not batch_open:
                 break
         elif posted >= cfg.MAX_POSTS_PER_RUN:
             break
@@ -625,7 +630,7 @@ def publish(db, t):
             continue
         auto_at = None
         if auto and not cfg.AUTO_VISION:
-            auto_at = store.iso(t + timedelta(hours=cfg.AUTO_VETO_HOURS))   # кадры смотрит модератор
+            auto_at = auto_time(t, auto_sent)      # кадры смотрит модератор
         elif auto:
             try:
                 verdict = frames_verdict(item)
@@ -638,13 +643,12 @@ def publish(db, t):
                     log.info("кадры (%s): %s %s", verdict, item["key"], item.get("title", "")[:60])
                     continue
                 if verdict in vision.PASS:
-                    auto_at = store.iso(t + timedelta(hours=cfg.AUTO_VETO_HOURS))
+                    auto_at = auto_time(t, auto_sent)
                 # кадров нет или ответ не разобрать: пусть решает модератор
         if mod:
             if not send_to_admins(item, t, auto_at):
                 break   # админ ещё не нажал Start у бота, либо Telegram недоступен
-            if auto_at:
-                auto_slot = False   # следующий автоматический кандидат уйдёт в свой черёд
+            auto_sent += bool(auto_at)
             sent += 1
             recent.append(item)
         else:
