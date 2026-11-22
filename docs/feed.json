@@ -1,6 +1,17 @@
 {
  "items": [
   {
+   "author": "Двач",
+   "duration": 0,
+   "id": "dvachannel/193706",
+   "page": "c/tg-dvachannel_193706/",
+   "platform": "tg",
+   "posted_at": "2026-11-22T16:41:27Z",
+   "title": "Сюжет 12\\10",
+   "url": "https://t.me/dvachannel/193706",
+   "views": 0
+  },
+  {
    "author": "Voizz Gaming",
    "duration": 31,
    "id": "eSO7mrpXKGI",
@@ -1638,17 +1649,6 @@
    "title": "GTA 6 NPCs HAVE NO FEAR 💀 #gta6 #shorts",
    "url": "https://www.youtube.com/shorts/YTlq0CimgIU",
    "views": 14055
-  },
-  {
-   "author": "Larp Media",
-   "duration": 31,
-   "id": "bkBe_PWTCrQ",
-   "page": "c/yt-bkBe_PWTCrQ/",
-   "platform": "yt",
-   "posted_at": "2026-11-19T12:20:12Z",
-   "title": "A GTA 6 NPC Tried to Spin Out Clix  #gta6",
-   "url": "https://www.youtube.com/shorts/bkBe_PWTCrQ",
-   "views": 2363
   }
  ],
  "tagline": "The funniest GTA 6 clips in one feed. Unofficial fan project.",
@@ -1662,5 +1662,5 @@
   "yt-AxS_XWRHzT4"
  ],
  "top_day": "2026-11-21",
- "updated_at": "2026-11-22T16:40:40Z"
+ "updated_at": "2026-11-22T16:41:27Z"
 }
