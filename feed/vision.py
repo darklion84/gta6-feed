@@ -106,7 +106,9 @@ def _ask_anthropic(prompt, image):
     r = net.send("anthropic", "https://api.anthropic.com/v1/messages",
                  headers={"x-api-key": os.environ["ANTHROPIC_API_KEY"].strip(),
                           "anthropic-version": "2023-06-01"},
-                 json={"model": cfg.VISION_ANTHROPIC_MODEL, "max_tokens": 200,
+                 # Запас с избытком: модель сначала рассуждает, и рассуждение тоже считается
+                 # в этот предел. При 200 токенах до самого ответа дело не доходило.
+                 json={"model": cfg.VISION_ANTHROPIC_MODEL, "max_tokens": 2000,
                        "messages": [{"role": "user", "content": [
                            {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg",
                                                         "data": base64.b64encode(image).decode()}},
@@ -123,7 +125,7 @@ def _ask_gemini(prompt, image):
                  json={"contents": [{"parts": [
                      {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(image).decode()}},
                      {"text": prompt}]}],
-                     "generationConfig": {"responseMimeType": "application/json", "maxOutputTokens": 200}})
+                     "generationConfig": {"responseMimeType": "application/json", "maxOutputTokens": 2000}})
     first = (r.get("candidates") or [{}])[0]
     last["meta"] = {"stop": first.get("finishReason"), "usage": r.get("usageMetadata")}
     parts = (first.get("content") or {}).get("parts") or []
