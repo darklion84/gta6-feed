@@ -1,6 +1,17 @@
 {
  "items": [
   {
+   "author": "Двач",
+   "duration": 0,
+   "id": "dvachannel/193816",
+   "page": "c/tg-dvachannel_193816/",
+   "platform": "tg",
+   "posted_at": "2026-11-24T16:52:34Z",
+   "title": "Джейсон, ты чего…",
+   "url": "https://t.me/dvachannel/193816",
+   "views": 0
+  },
+  {
    "author": "Viceprint",
    "duration": 59,
    "id": "wwgqYAJOvE0",
@@ -1638,17 +1649,6 @@
    "title": "We still can’t resist these things 😭 #gta6 #gtaviral #vicecity #fail",
    "url": "https://www.youtube.com/shorts/8w-V3pkE4IU",
    "views": 116741
-  },
-  {
-   "author": "Darsa Gaming",
-   "duration": 64,
-   "id": "wVo5ntvTAjI",
-   "page": "c/yt-wVo5ntvTAjI/",
-   "platform": "yt",
-   "posted_at": "2026-11-21T23:50:39Z",
-   "title": "Ternyata Ada Easter Egg Yang Kocak Banget di GTA 6 #shorts",
-   "url": "https://www.youtube.com/shorts/wVo5ntvTAjI",
-   "views": 220866
   }
  ],
  "tagline": "The funniest GTA 6 clips in one feed. Unofficial fan project.",
@@ -1662,5 +1662,5 @@
   "yt-517ltFJsZYk"
  ],
  "top_day": "2026-11-23",
- "updated_at": "2026-11-24T16:50:43Z"
+ "updated_at": "2026-11-24T16:52:34Z"
 }
