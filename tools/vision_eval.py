@@ -50,6 +50,9 @@ def main():
             time.sleep(PAUSE * 4)
             continue
         got = result["verdict"] if result else "нет ответа"
+        if not result and table[("?", "debug")] < 5:      # первые несколько случаев: что именно пришло
+            table[("?", "debug")] += 1
+            print(f"  нет ответа {key}: {vision.last}")
         table[(mine, got)] += 1
         decision = "одобрен" if item["status"] == "published" else "пропущен"
         by_decision[(got, decision)] += 1
@@ -62,6 +65,7 @@ def main():
     print(f"{'':10}" + "".join(f"{k:>12}" for k in kinds))
     for mine in ("clean", "edited", "none"):
         print(f"{mine:10}" + "".join(f"{table[(mine, got)]:>12}" for got in kinds))
+    del table[("?", "debug")]
     total = sum(table.values())
     same = sum(v for (a, b), v in table.items() if a == b)
     # для автоматического режима важно одно: выпускать (clean) или нет

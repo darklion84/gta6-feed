@@ -51,6 +51,9 @@ of another game.
 Answer with JSON only: {{"verdict": "clean" | "skit" | "edited" | "none", "why": "<at most 12 words>"}}"""
 
 
+last = {}      # подробности последней проверки: для разбора, почему ответа нет
+
+
 def provider():
     if os.environ.get("ANTHROPIC_API_KEY", "").strip():
         return "anthropic"
@@ -108,6 +111,8 @@ def _ask_anthropic(prompt, image):
                            {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg",
                                                         "data": base64.b64encode(image).decode()}},
                            {"type": "text", "text": prompt}]}]})
+    last["meta"] = {"stop": r.get("stop_reason"), "blocks": [b.get("type") for b in r.get("content", [])],
+                    "usage": r.get("usage")}
     return "".join(b.get("text", "") for b in r.get("content", []) if b.get("type") == "text")
 
 
@@ -119,7 +124,9 @@ def _ask_gemini(prompt, image):
                      {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(image).decode()}},
                      {"text": prompt}]}],
                      "generationConfig": {"responseMimeType": "application/json", "maxOutputTokens": 200}})
-    parts = ((r.get("candidates") or [{}])[0].get("content") or {}).get("parts") or []
+    first = (r.get("candidates") or [{}])[0]
+    last["meta"] = {"stop": first.get("finishReason"), "usage": r.get("usageMetadata")}
+    parts = (first.get("content") or {}).get("parts") or []
     return "".join(p.get("text", "") for p in parts)
 
 
@@ -146,12 +153,16 @@ def check(item):
     who = provider()
     if not who or item.get("platform") != "yt":
         return None
+    last.clear()
     kind, images = frames(item["id"])
+    last["frames"] = f"{kind}:{sum(1 for im in images if im)}"
     if kind == "none":
         return None
     prompt = PROMPT.format(title=(item.get("title") or "")[:200], author=(item.get("author") or "")[:80])
     ask = _ask_anthropic if who == "anthropic" else _ask_gemini
-    result = parse(ask(prompt, sheet(images)))
+    text = ask(prompt, sheet(images))
+    last["raw"] = (text or "")[:300]
+    result = parse(text)
     if result:
         result["by"] = who
     return result
