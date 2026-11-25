@@ -1,6 +1,17 @@
 {
  "items": [
   {
+   "author": "Nast Smith",
+   "duration": 24,
+   "id": "QAWxia9nhEs",
+   "page": "c/yt-QAWxia9nhEs/",
+   "platform": "yt",
+   "posted_at": "2026-11-25T21:50:40Z",
+   "title": "GTA6 thug Life wallride! #gta6 #lasalle #stunt #thuglife",
+   "url": "https://www.youtube.com/shorts/QAWxia9nhEs",
+   "views": 2730
+  },
+  {
    "author": "I Segreti del Mercante",
    "duration": 44,
    "id": "S68eNLMEReU",
@@ -1638,17 +1649,6 @@
    "title": "Сюжет 12\\10",
    "url": "https://t.me/dvachannel/193706",
    "views": 0
-  },
-  {
-   "author": "Voizz Gaming",
-   "duration": 31,
-   "id": "eSO7mrpXKGI",
-   "page": "c/yt-eSO7mrpXKGI/",
-   "platform": "yt",
-   "posted_at": "2026-11-22T16:34:25Z",
-   "title": "FUNNY MOVEMENTS IN GTA 6 #2",
-   "url": "https://www.youtube.com/shorts/eSO7mrpXKGI",
-   "views": 210570
   }
  ],
  "tagline": "The funniest GTA 6 clips in one feed. Unofficial fan project.",
@@ -1662,5 +1662,5 @@
   "yt-FMrOrWAYJYE"
  ],
  "top_day": "2026-11-25",
- "updated_at": "2026-11-25T21:40:42Z"
+ "updated_at": "2026-11-25T21:50:40Z"
 }
