@@ -125,16 +125,31 @@ export class Queue extends DurableObject {
   }
   async #fire(now) {
     this.#set("last_dispatch", now);
-    const status = await dispatchWorkflow(this.env);
-    if (status !== 0 && status !== 204 && now - this.#get("last_warn") > WARN_GAP_MS) {
+    let status = await dispatchWorkflow(this.env);
+    if (status >= 500 || status < 0) {          // сбой на стороне GitHub или сети: одна попытка сразу
+      await new Promise((done) => setTimeout(done, 2000));
+      status = await dispatchWorkflow(this.env);
+    }
+    if (status === 0 || status === 204) {
+      this.#set("dispatch_fails", 0);
+      return status;
+    }
+    const fails = this.#get("dispatch_fails") + 1;
+    this.#set("dispatch_fails", fails);
+    // 401, 403, 404: GitHub не принял сам токен, это чинит только владелец. Остальное
+    // (5xx, сеть) обычно проходит само, поэтому о нём говорим, только если сбой держится.
+    const tokenProblem = status === 401 || status === 403 || status === 404;
+    if ((tokenProblem || fails >= 3) && now - this.#get("last_warn") > WARN_GAP_MS) {
       this.#set("last_warn", now);
+      const text = tokenProblem
+        ? `⚠️ GitHub не принял токен для запуска сборщика (код ${status}). Скорее всего, истёк ` +
+          "DISPATCH_TOKEN: выпустите новый и обновите секрет. Кнопки продолжают работать, " +
+          "но сайт будет обновляться с задержкой."
+        : `⚠️ GitHub не запускает сборщик (код ${status}, неудачных попыток подряд: ${fails}). Это сбой ` +
+          "на его стороне, токен ни при чём, делать ничего не нужно: попытки продолжаются. " +
+          "Кнопки работают, сайт обновится, когда GitHub оживёт.";
       for (const id of adminIds(this.env)) {
-        await tg(this.env, "sendMessage", {
-          chat_id: id,
-          text: `⚠️ Не удалось запустить сборщик на GitHub (код ${status}). ` +
-                "Скорее всего, истёк токен DISPATCH_TOKEN: выпустите новый и обновите секрет. " +
-                "Кнопки продолжают работать, но сайт будет обновляться с задержкой.",
-        });
+        await tg(this.env, "sendMessage", { chat_id: id, text });
       }
     }
     return status;
