@@ -1,6 +1,17 @@
 {
  "items": [
   {
+   "author": "Typical Gamer",
+   "duration": 23,
+   "id": "IkBe8BZ7wbM",
+   "page": "c/yt-IkBe8BZ7wbM/",
+   "platform": "yt",
+   "posted_at": "2026-11-26T14:50:40Z",
+   "title": "What is this glitch??",
+   "url": "https://www.youtube.com/shorts/IkBe8BZ7wbM",
+   "views": 37696
+  },
+  {
    "author": "M3RKMUS1C",
    "duration": 66,
    "id": "OfDH9Gu_r2U",
@@ -1638,17 +1649,6 @@
    "title": "I Found A Mermaid In GTA 6 Easter Egg",
    "url": "https://www.youtube.com/shorts/DXUtMPOjNu4",
    "views": 388529
-  },
-  {
-   "author": "sirteodorthethird",
-   "duration": 49,
-   "id": "cJk4h8KXNsg",
-   "page": "c/yt-cJk4h8KXNsg/",
-   "platform": "yt",
-   "posted_at": "2026-11-23T10:30:42Z",
-   "title": "GTA 6 NPC AI Became Self-Aware? 👁️",
-   "url": "https://www.youtube.com/shorts/cJk4h8KXNsg",
-   "views": 37547
   }
  ],
  "tagline": "The funniest GTA 6 clips in one feed. Unofficial fan project.",
@@ -1662,5 +1662,5 @@
   "yt-8X8TL_WTpv0"
  ],
  "top_day": "2026-11-25",
- "updated_at": "2026-11-26T14:30:42Z"
+ "updated_at": "2026-11-26T14:50:40Z"
 }
